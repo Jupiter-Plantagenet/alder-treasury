@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parent
 COMMANDS = [['npm', 'run', 'build'], ['npm', 'run', 'test:unit'], ['forge', 'test', '--match-contract', 'BatchExecutorTest', '--match-test', 'testOnlySafe|testExactTransferAndReplay|testThirdTransferRollback', '-vv']]
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     python = ROOT / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
     env = dict(os.environ, PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE='1')
     report = {'started_utc': datetime.now(timezone.utc).isoformat(), 'checks': [],
