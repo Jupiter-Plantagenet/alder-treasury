@@ -1,0 +1,4 @@
+import {spawnSync} from 'node:child_process';import fs from 'node:fs';
+if(!fs.existsSync('evidence/episode-v2-deployment.json')||!fs.existsSync('.local/database.json'))throw Error('Isolated deployment and scoped DB provision required; no fallback to product records');
+const env={...process.env,ALDER_DATABASE_URL:'postgresql://postgres@127.0.0.1:5543/alder_v2_test',ALDER_RPC_URL:'http://127.0.0.1:18547',ALDER_DEPLOYMENT_FILE:'evidence/episode-v2-deployment.json'};
+const args=process.argv.includes('--browser')?['--import','tsx','tests/browser-destinations.ts']:['--import','tsx','--test','--test-concurrency=1','tests/destination.test.ts','tests/destination-boundary.test.ts','tests/destination-editor.test.ts','tests/destination-ui.test.tsx'];const result=spawnSync(process.execPath,args,{env,stdio:'inherit'});process.exitCode=result.status??1;

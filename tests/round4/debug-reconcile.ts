@@ -1,0 +1,2 @@
+import pg from 'pg';import {databaseUrl} from '../../apps/api/database.ts';import {reconcileApplication} from '../../services/treasury-indexer.ts';
+const pool=new pg.Pool({connectionString:databaseUrl('indexer'),max:1});try{console.log(JSON.stringify(await reconcileApplication(pool)));}catch(e:any){console.log('ERROR',e?.message,String(e?.stack).split('\n').slice(0,6).join(' | '));}await pool.end();

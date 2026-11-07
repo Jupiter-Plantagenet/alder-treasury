@@ -1,0 +1,40 @@
+{
+  "started_utc": "2026-11-07T04:05:20.241244+00:00",
+  "checks": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/01.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:unit"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/02.log"
+    },
+    {
+      "command": [
+        "forge",
+        "test",
+        "--match-contract",
+        "BatchExecutorTest",
+        "--match-test",
+        "testOnlySafe|testExactTransferAndReplay|testThirdTransferRollback",
+        "-vv"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/03.log"
+    }
+  ],
+  "scope": "Focused checks in the current checkout",
+  "passed": true,
+  "finished_utc": "2026-11-07T04:05:28.597334+00:00",
+  "environment": "Fresh dependency installation on the original Windows host"
+}

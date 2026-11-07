@@ -1,0 +1,2 @@
+export function parseUnitsExact(s:string):bigint{if(!/^(0|[1-9][0-9]*)(\.[0-9]{1,6})?$/.test(s))throw Error('Use positive decimal units, at most six places');const [whole,fraction='']=s.split('.');const n=BigInt(whole)*1000000n+BigInt(fraction.padEnd(6,'0'));if(n<=0n||n>=2n**256n)throw Error('uint256 range');return n;}
+export function formatUnitsExact(n:bigint):string{const f=(n%1000000n).toString().padStart(6,'0').replace(/0+$/,'');return (n/1000000n).toString()+(f?'.'+f:'');}

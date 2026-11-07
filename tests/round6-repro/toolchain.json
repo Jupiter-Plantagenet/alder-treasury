@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "target": "TR-T-REPRO Linux x86_64 source replay",
+  "node": {"version": "v26.7.0", "license": "MIT"},
+  "npm": {"version": "11.19.0", "lockfile": "package-lock.json", "lockfile_sha256": "195104c5b7187ef47ebfd14fd435aac386ede27f86ecfc8bded3d02d31aac965", "install": "npm ci --ignore-scripts --no-audit --no-fund", "license": "Artistic-2.0"},
+  "debian": {"distribution": "Debian GNU/Linux 12 (bookworm)", "base_image": "node:26.7.0-bookworm-slim", "base_image_digest": "sha256:4db36457f406501e6f608802e5da617e5fbd0e80b75901b6a09de1ae5a667d32", "license": "Debian Free Software Guidelines; component licenses vary"},
+  "foundry": {"version": "1.5.1", "commit": "b0a9dd9ceda36f63e2326ce530c10e6916f4b8a2", "url": "https://github.com/foundry-rs/foundry/releases/download/v1.5.1/foundry_v1.5.1_linux_amd64.tar.gz", "sha256": "73640b01bd9ed29fdb4965085099371f8cf0dbbec3e2086cf54564efc4dcfe88", "license": "MIT"},
+  "solc": {"version": "0.8.24+commit.e11b9ed9", "url": "https://binaries.soliditylang.org/linux-amd64/solc-linux-amd64-v0.8.24+commit.e11b9ed9", "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f", "license": "GPL-3.0"},
+  "postgres": {"version": "16 (exact patch is bound by OCI digest)", "image": "postgres@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777", "license": "PostgreSQL License"},
+  "wallet": {"name": "MetaMask Chrome", "version": "13.50.0", "url": "https://github.com/MetaMask/metamask-extension/releases/download/v13.50.0/metamask-chrome-13.50.0.zip", "sha256": "b759caca275dec1a10edfebb9d1de1d26589a92104d8b0523ec442930e20e47c", "license": "MetaMask custom source-available license; local testing permitted, redistribution not authorized by this packet", "acquisition": "fetch into operator-local .local only; verify before unpack; never include archive/profile in source bundle"},
+  "browser": {"name": "Chrome for Testing", "version": "151.0.7922.34", "windows_x64_sha256": "409805a16d6416087e6b2f778df1cf8f7bbb267d6b99f6b5bb0a618eace234f2", "linux_x64_sha256": null, "linux_sha256_status": "not established; Linux runner must require an independently verified platform-specific browser artifact digest before claiming pinned-browser reproduction", "license": "Google Chrome Terms of Service; browser is acquired locally and never redistributed"},
+  "application_dependencies": {"source": "package-lock.json", "vendored": "vendor/safe-1.4.1/SOURCE.json and byte-hash manifest", "openzeppelin": "5.0.2 MIT", "safe": "1.4.1 LGPL-3.0", "viem": "2.57.11 MIT", "react": "19.3.1 MIT", "fastify": "5.12.7 MIT", "vite": "8.3.5 MIT", "complete_license_review": "separate TR-T-SUPPLY gate; this metadata is not legal approval"}
+}

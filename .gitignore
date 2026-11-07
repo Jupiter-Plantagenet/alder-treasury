@@ -1,0 +1,25 @@
+node_modules/
+npm-cache/
+.browsers/
+pgdata/
+.local/
+dist/
+contracts/out/
+cache/
+evidence/
+
+# Publication review and local runtime state
+.local/
+.cache/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.pfx
+*.dump
+runtime-logs/
+chain-state/

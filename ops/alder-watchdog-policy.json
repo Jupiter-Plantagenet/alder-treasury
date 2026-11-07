@@ -1,0 +1,282 @@
+{
+  "schema": "alder.watchdog.policy/v1",
+  "taskName": "PortfolioAlderWatchdog",
+  "taskPath": "\\",
+  "taskDescription": "Portfolio Alder watchdog; fail-closed local product recovery; operator stop marker respected.",
+  "chainId": "0x7a69",
+  "safeAddress": "0xC91B3bb241564757b1b4261B2f5dd996A3eC6663",
+  "lineage": {
+    "genesis": "0xf0bcef3e005c610a62955b74b4d76ba98617fd5811d1007c99bb46e24f5dcdec",
+    "genesisTimestamp": "0x6ae4a90c",
+    "minimumHead": 3442,
+    "anchorHeight": 3442,
+    "anchorHash": "0xb2bbc433f82ade39e15b1263a634d7028fcb082c4ac431d2f37071fde0964b72",
+    "minimumSafeNonce": 248,
+    "trustedCheckpoint": {
+      "head": 3442,
+      "safeNonce": 248
+    },
+    "legacyReloadPrefix": {
+      "count": 8,
+      "sha256": "2d3b1763af05f1ba09d8e992a458f1855c3b83eb350fcf468f76e5eeec9cd5ba"
+    }
+  },
+  "paths": {
+    "chainState": "chain-state/anvil-8547-state.json",
+    "reloadPoints": "chain-state/reload-points.jsonl",
+    "deployment": "evidence/app-deployment.json",
+    "lineageCheckpoints": "chain-state/watchdog-lineage-checkpoints.jsonl",
+    "lineageHighWater": ".local/alder-watchdog/lineage-high-water.jsonl",
+    "lineageOwner": ".local/alder-watchdog/lineage-owner.json"
+  },
+  "runtime": {
+    "nodePath": ".local/runtime/node-v26.7.0/node.exe",
+    "nodeSha256": "e921fe5307e29bf6fd00000dd594356affd3a7b044e52720c7f10decbdc305b9",
+    "pythonPath": "C:/Users/user/portfolio-build/folio/.venv/Scripts/python.exe",
+    "pythonSha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "anvilPath": "C:/Users/user/.foundry/bin/anvil.exe",
+    "anvilSha256": "d909a15a16d56ef2c00093c70cb567845b16400398158e5957b7a9a6818a1b9b"
+  },
+  "resourceGate": {
+    "minimumCFreeBytes": 50000000000,
+    "minimumAvailableRamBytes": 6442450944,
+    "maximumPerfOsCommitPercentExclusive": 85
+  },
+  "services": {
+    "chain": {
+      "port": 8547,
+      "image": "C:/Users/user/.foundry/bin/anvil.exe",
+      "rolePattern": "anvil\\.exe.*--port 8547.*--state.*anvil-8547-state\\.json"
+    },
+    "api": {
+      "port": 8103,
+      "image": "C:/Users/user/portfolio-build/alder/.local/runtime/node-v26.7.0/node.exe",
+      "rolePattern": "apps/api/main\\.ts"
+    },
+    "worker": {
+      "port": 8113,
+      "image": "C:/Users/user/portfolio-build/alder/.local/runtime/node-v26.7.0/node.exe",
+      "rolePattern": "services/indexer-worker\\.ts"
+    },
+    "ui": {
+      "port": 5103,
+      "image": "C:/Users/user/portfolio-build/alder/.local/runtime/node-v26.7.0/node.exe",
+      "rolePattern": "vite\\.js.*--port 5103"
+    },
+    "release": {
+      "port": 5113,
+      "image": "C:/Users/user/portfolio-build/alder/.local/runtime/node-v26.7.0/node.exe",
+      "rolePattern": "ops/release-server\\.ts"
+    }
+  },
+  "approvedAppReview": {
+    "source": "apps/api/app.ts",
+    "sourceSha256": "e5c2d6a2571169859adad99c57972d2a050f07fb1ea7e66d832af4a8076a4b45",
+    "independentReviewPath": "docs/independent-review-current-finish-20261102.json",
+    "supplyEvidencePath": "evidence/round6-perf/supply-current-20261102/report.json",
+    "independentReviewEvidenceSha256": "44809263928a9fa0f46dcca4059462811c533600229cb1125229701325f46276",
+    "supply43EvidenceSha256": "9bd7235cb69a61da662c7ed65f307b4e345431a1c0541c0ee5788eb1b264eb8c",
+    "reviewedSourcePinCount": 43,
+    "reviewedSourcePins": {
+      "apps/api/login-limiter.ts": "a4e515adee9cdef3ea4a76c6a92af945cd97a0fa648162945a0c1cfa8afc7392",
+      "apps/api/events.ts": "7338430afeffebc4c932889b740f1c5e282f305064a6c4b1f201194c4bcadcf9",
+      "services/lease.ts": "581fab685ec5bf0fcd188ad20b5b365eb5e59e728b9a54d0dc417ee0dbe7b046",
+      "services/allowance-verifier.ts": "3e56f1a345ab41a907a5b316722279ed3311eba91c49332981e2c05d505c822a",
+      "apps/web/wallet-provider.ts": "85b578f9f7f1c0d633c8dde7c08e8633035e7203307b87a8b3a7b990f852332f",
+      "apps/web/Settings.tsx": "9de309d2c90936c1070f6c34faadd8b2564d66d242fd5367601b7556725b9329",
+      "apps/api/export.ts": "2cd62cd84e00a5c631130f048160425c3beb358b71ec8987c09504d1c2e1a1ad",
+      "apps/web/screens.json": "e8cb9645e88c77d44300f10540bfa5bb035bf3e305cbf605a3fac9300448cb54",
+      "apps/api/app.ts": "e5c2d6a2571169859adad99c57972d2a050f07fb1ea7e66d832af4a8076a4b45",
+      "db/013-round6-outbox-import-guard.sql": "9ac5e247a54327c7983c901091f055e714efe6fbf27ab527cb6b5fa08bce2be5",
+      "apps/web/App.tsx": "e70fef2b0f6436c09b89a2a3f1ba4f7bc3d5d5c3bdab1d0febecd152c00e0f77",
+      "apps/api/login-throttle.ts": "af5eedd9ab4247525844b2cbdfa0d3e9c9d84dc6b76c9f2586081253f0043235",
+      "packages/allowance.ts": "8c57ae6e05ffaacc87e415074ffd4ed6649f35f2fc5c3538c363f7cb0a92a8d5",
+      "db/015-persistent-login-throttles.sql": "a3c399e55c5685c58a7aa8c44b5f7c7d989378cadb33b0e54ee61e00d1a88e9f",
+      "contracts/test/TreasuryInvariant.t.sol": "4e61ee99cd8df5a99d766a630206cadd73225b6f9ebf3bc175e6552419f0322f",
+      "contracts/test/O5FuzzProperties.t.sol": "320e82acf2e24a7f7caa324e342e2b4f7fe5bbde4aaab0a4346b10f464f4af06",
+      "services/header-view.ts": "3e0e9088510fa36238dc13e3313e0c8a104f581a531f0639d12c0fc52a0afa57",
+      "apps/api/treasury.ts": "942b9048eafd814cf1e5b06113b0c7a42869ace1aa59cb83890e6a228ca09417",
+      "apps/api/reads.ts": "2ebacb6e570030d641ce4f7f0dad3589905895766411864f94ff1fc620616f5b",
+      "db/016-api-canonical-chain-reads.sql": "d8339821f675fa60bf35bac2d7281ac430718c8e906004d3be892c90a89f9a51",
+      "services/attempt-evidence.ts": "9ce35b0e9e1661d11cb8ae56d5ed27dd0451ca024b7ee409f169e35c7093e707",
+      "apps/web/Inbox.tsx": "41eea0b80e8a6f36cecc84a0eb787829c612f1e47ac0c8e36cccf5e97ef1df6e",
+      "apps/api/destinations.ts": "8e86555d4b53069d4ee29c0b994db3ba216d86d98e8a653d94f5d654cf6853fa",
+      "contracts/src/BatchExecutor.sol": "a1f8107470ad484ac6bcf6d425cdfc28c874f32f098b47b2ec97faace7432c92",
+      "packages/invalidation.ts": "ecc1b8a59a4817ac616b1d4ca3085d7e81e59aeeffdcbb565612cb725a2fec08",
+      "apps/web/Destinations.tsx": "8aa014a51ba0859f9c23ddb9862910be986de526556ac0ebf4d0105c680dff77",
+      "db/012-round6-access-hardening.sql": "88d34c3a3ce1ccbeab838c183a089191e90eeb20e05d9124710845ae933cf2f9",
+      "services/invalidation-verifier.ts": "d46e2783d1f109195cc0491d7d9ad3553b09fba28dc2e907f3c79b4e3b8c972b",
+      "services/verifier.ts": "049149c1778d6f75dd2e4c16bf4e057d964c8713443ea35250c24f61ee37caf5",
+      "services/treasury-indexer.ts": "1ed0ed57b99f36794090708794c14e70cd85a4fa74b7a5b74164276df86aeebf",
+      "apps/api/imports.ts": "14f1c313df75b3330771942d6171c6de0521890cca64be01ecb6ba4df3aa744d",
+      "ops/release-path.ts": "e8e73c33aa18268d0e76c1c00439966e58d027ed2bcc7f48b5e8b21f666696c6",
+      "apps/api/mutate.ts": "e8aa03ffbb3564a3c228300b85d0779c27ebb412fee6519ac15470740b17774e",
+      "ops/release-server.ts": "28a334867410bce1b3b35f70950c1a58c45ced15a8de011da283c161e1f09916",
+      "apps/web/Policy.tsx": "c895ca4dba6cba0d7ba8166dc17c0c0a0f11cac7af86e6abe908b25b19a1fbef",
+      "packages/intent.ts": "dcd6e3253d312374dbf8bd09f98fa85afb39c77fbd802b8f0c05470b38206c52",
+      "packages/units.ts": "f28563d606d19b6a3567fd8d210c4945975fb31622360adbc914481f86d7b75d",
+      "apps/web/Attachments.tsx": "8d998137ee0a50efef4a7c505c55fca2d63f244410c5fcc2db33dd10b52cae05",
+      "apps/web/Recovery.tsx": "ae673fac086dda8b51459faac1be11867811dfa2c6ac4a7979b1da9b36ecf7f3",
+      "apps/api/destination-holds.ts": "c2abad37614aa6bd6ef6830aa573be7a5dbc9f30198bfced0dee32ccc7d66277",
+      "apps/api/members.ts": "21babbe75155d12134c6b9b7bbdbd9c2cb54c3af2a90a394aa7722c53799507b",
+      "ops/retention-purge.ts": "1f0df090b7c23e394c44fc17c6b0d338935da6d681aaf3a62f55b9f51562c178",
+      "docs/export-recovery.md": "3f8c11d085cc1e3af61df6cb150e977e390a5e5a4eab0758da22cb25f24de388"
+    }
+  },
+  "sourcePins": {
+    "apps/api/app.ts": "e5c2d6a2571169859adad99c57972d2a050f07fb1ea7e66d832af4a8076a4b45",
+    "apps/api/main.ts": "1c0eb1c338b9696fde5b652fea233ac9106f5d7decb3c540b912de594700100e",
+    "apps/api/database.ts": "93140ff1cecdbbec8cc56b1ad8bbcf3c4e09bf648e9e586d2a6dc979076a2849",
+    "apps/api/tls.ts": "480df1575cbe46d720670e508a5cd58774fcb493c8243e3edd0c92d89dec522d",
+    "services/indexer-worker.ts": "75abc4e58b622f7b013762e6bd04f48e876d5264a9f19473210cfb5aa189ccce",
+    "ops/round4-services.ps1": "d6284ad1b25448ac4441f356f1ca600a917da8dd1b31f05ff6bdcbff0bff2c4d",
+    "ops/verify-chain-identity.mjs": "548899475c14cde1a415d4c381a3f6dee219649ca328e1a4ee962e53bd27f4af",
+    "ops/sanitize-anvil-state.mjs": "a3ba83aeab4b3f747668454f2b5147f96af8bf194b64fc2819e475789330fe6c",
+    "ops/codex-round6-backup.py": "439c09a52759df63fce5cb39af7090c517334b27aaa97b3015cbe781ea795c25",
+    "ops/chain-prestop-dump.mjs": "fd9c47530766e5be6e83c964788b16111c85dcd3d567d31df7ddb016dc9a13fd",
+    "ops/release-server.ts": "28a334867410bce1b3b35f70950c1a58c45ced15a8de011da283c161e1f09916",
+    "ops/release-path.ts": "e8e73c33aa18268d0e76c1c00439966e58d027ed2bcc7f48b5e8b21f666696c6",
+    "ops/alder-watchdog.ps1": "9f57bbda9c9667c12629b2ecc1644181e4c619107d8fd1482034b2cb93996d78",
+    "ops/alder-watchdog-guard.mjs": "482e2052e1251eba529c4f06a7de2e280ff5561be8d3a9312a1bd07af5c58977",
+    "ops/alder-watchdog-process.cs": "79259812b2eed98e4fa8672c21b76afd22a8df6f7035e7d8573eb91fdb32206b",
+    "vite.config.ts": "4d425ff72fa8da4d4bee9452b0e709bcf523a2552720bd5f94e992d1781ad705",
+    "package.json": "57edaac9a60ca5f3b345f335fbfe095032514e13ed06059fc4e5bb664e588279",
+    "package-lock.json": "195104c5b7187ef47ebfd14fd435aac386ede27f86ecfc8bded3d02d31aac965",
+    "evidence/app-deployment.json": "0f11f91cc4eaa5bdd61ef7f25700b64d459346146ec0033197ef2d67a8025299",
+    "docs/independent-review-current-finish-20261102.json": "44809263928a9fa0f46dcca4059462811c533600229cb1125229701325f46276",
+    "evidence/round6-perf/supply-current-20261102/report.json": "9bd7235cb69a61da662c7ed65f307b4e345431a1c0541c0ee5788eb1b264eb8c",
+    ".local/runtime/node-v26.7.0/node.exe": "e921fe5307e29bf6fd00000dd594356affd3a7b044e52720c7f10decbdc305b9",
+    "C:/Users/user/portfolio-build/tools/round5_locked_step.py": "87b0cd3058e8159eafe9282445a34ed5cbd391e4524ca309fad9f7f62cfee796",
+    "C:/Users/user/portfolio-build/tools/product_lock.py": "460bf472091b3d283b70d4e287074c3e499b2aa192171dc5d312a346adcc0e64",
+    "C:/Users/user/portfolio-build/folio/.venv/Scripts/python.exe": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "C:/Users/user/.foundry/bin/anvil.exe": "d909a15a16d56ef2c00093c70cb567845b16400398158e5957b7a9a6818a1b9b",
+    "apps/api/login-limiter.ts": "a4e515adee9cdef3ea4a76c6a92af945cd97a0fa648162945a0c1cfa8afc7392",
+    "apps/api/events.ts": "7338430afeffebc4c932889b740f1c5e282f305064a6c4b1f201194c4bcadcf9",
+    "services/lease.ts": "581fab685ec5bf0fcd188ad20b5b365eb5e59e728b9a54d0dc417ee0dbe7b046",
+    "services/allowance-verifier.ts": "3e56f1a345ab41a907a5b316722279ed3311eba91c49332981e2c05d505c822a",
+    "apps/web/wallet-provider.ts": "85b578f9f7f1c0d633c8dde7c08e8633035e7203307b87a8b3a7b990f852332f",
+    "apps/web/Settings.tsx": "9de309d2c90936c1070f6c34faadd8b2564d66d242fd5367601b7556725b9329",
+    "apps/api/export.ts": "2cd62cd84e00a5c631130f048160425c3beb358b71ec8987c09504d1c2e1a1ad",
+    "apps/web/screens.json": "e8cb9645e88c77d44300f10540bfa5bb035bf3e305cbf605a3fac9300448cb54",
+    "db/013-round6-outbox-import-guard.sql": "9ac5e247a54327c7983c901091f055e714efe6fbf27ab527cb6b5fa08bce2be5",
+    "apps/web/App.tsx": "e70fef2b0f6436c09b89a2a3f1ba4f7bc3d5d5c3bdab1d0febecd152c00e0f77",
+    "apps/api/login-throttle.ts": "af5eedd9ab4247525844b2cbdfa0d3e9c9d84dc6b76c9f2586081253f0043235",
+    "packages/allowance.ts": "8c57ae6e05ffaacc87e415074ffd4ed6649f35f2fc5c3538c363f7cb0a92a8d5",
+    "db/015-persistent-login-throttles.sql": "a3c399e55c5685c58a7aa8c44b5f7c7d989378cadb33b0e54ee61e00d1a88e9f",
+    "contracts/test/TreasuryInvariant.t.sol": "4e61ee99cd8df5a99d766a630206cadd73225b6f9ebf3bc175e6552419f0322f",
+    "contracts/test/O5FuzzProperties.t.sol": "320e82acf2e24a7f7caa324e342e2b4f7fe5bbde4aaab0a4346b10f464f4af06",
+    "services/header-view.ts": "3e0e9088510fa36238dc13e3313e0c8a104f581a531f0639d12c0fc52a0afa57",
+    "apps/api/treasury.ts": "942b9048eafd814cf1e5b06113b0c7a42869ace1aa59cb83890e6a228ca09417",
+    "apps/api/reads.ts": "2ebacb6e570030d641ce4f7f0dad3589905895766411864f94ff1fc620616f5b",
+    "db/016-api-canonical-chain-reads.sql": "d8339821f675fa60bf35bac2d7281ac430718c8e906004d3be892c90a89f9a51",
+    "services/attempt-evidence.ts": "9ce35b0e9e1661d11cb8ae56d5ed27dd0451ca024b7ee409f169e35c7093e707",
+    "apps/web/Inbox.tsx": "41eea0b80e8a6f36cecc84a0eb787829c612f1e47ac0c8e36cccf5e97ef1df6e",
+    "apps/api/destinations.ts": "8e86555d4b53069d4ee29c0b994db3ba216d86d98e8a653d94f5d654cf6853fa",
+    "contracts/src/BatchExecutor.sol": "a1f8107470ad484ac6bcf6d425cdfc28c874f32f098b47b2ec97faace7432c92",
+    "packages/invalidation.ts": "ecc1b8a59a4817ac616b1d4ca3085d7e81e59aeeffdcbb565612cb725a2fec08",
+    "apps/web/Destinations.tsx": "8aa014a51ba0859f9c23ddb9862910be986de526556ac0ebf4d0105c680dff77",
+    "db/012-round6-access-hardening.sql": "88d34c3a3ce1ccbeab838c183a089191e90eeb20e05d9124710845ae933cf2f9",
+    "services/invalidation-verifier.ts": "d46e2783d1f109195cc0491d7d9ad3553b09fba28dc2e907f3c79b4e3b8c972b",
+    "services/verifier.ts": "049149c1778d6f75dd2e4c16bf4e057d964c8713443ea35250c24f61ee37caf5",
+    "services/treasury-indexer.ts": "1ed0ed57b99f36794090708794c14e70cd85a4fa74b7a5b74164276df86aeebf",
+    "apps/api/imports.ts": "14f1c313df75b3330771942d6171c6de0521890cca64be01ecb6ba4df3aa744d",
+    "apps/api/mutate.ts": "e8aa03ffbb3564a3c228300b85d0779c27ebb412fee6519ac15470740b17774e",
+    "apps/web/Policy.tsx": "c895ca4dba6cba0d7ba8166dc17c0c0a0f11cac7af86e6abe908b25b19a1fbef",
+    "packages/intent.ts": "dcd6e3253d312374dbf8bd09f98fa85afb39c77fbd802b8f0c05470b38206c52",
+    "packages/units.ts": "f28563d606d19b6a3567fd8d210c4945975fb31622360adbc914481f86d7b75d",
+    "apps/web/Attachments.tsx": "8d998137ee0a50efef4a7c505c55fca2d63f244410c5fcc2db33dd10b52cae05",
+    "apps/web/Recovery.tsx": "ae673fac086dda8b51459faac1be11867811dfa2c6ac4a7979b1da9b36ecf7f3",
+    "apps/api/destination-holds.ts": "c2abad37614aa6bd6ef6830aa573be7a5dbc9f30198bfced0dee32ccc7d66277",
+    "apps/api/members.ts": "21babbe75155d12134c6b9b7bbdbd9c2cb54c3af2a90a394aa7722c53799507b",
+    "ops/retention-purge.ts": "1f0df090b7c23e394c44fc17c6b0d338935da6d681aaf3a62f55b9f51562c178",
+    "docs/export-recovery.md": "3f8c11d085cc1e3af61df6cb150e977e390a5e5a4eab0758da22cb25f24de388"
+  },
+  "release": {
+    "distIndexSha256": "dd23cd31f9ccec324f4216885b9c40b74e0fef1a3c2704eb1596bb1cbdbc916c"
+  },
+  "repair": {
+    "automaticAction": "backup then start only missing services",
+    "neverKillsProcesses": true,
+    "neverResetsOrDeploys": true,
+    "offlineBackupAllowedOnlyWhenAllFiveProductPortsAreClosed": true
+  },
+  "legacyOperatorStopMigration": {
+    "schema": "alder.operator-stop-migration/v1",
+    "status": "NO_LEGACY_MARKER_IDENTIFIED",
+    "reviewedAt": "2026-11-02",
+    "noLegacyMarkerFound": true,
+    "legacyMarkerPaths": [],
+    "searchScope": [
+      "Alder source and docs for operator-stop/ops-stop marker references",
+      "Alder ops/ filename inventory for stop/operator/watchdog names",
+      "Alder runtime-logs/ filename inventory for stop/operator/watchdog names",
+      "Alder .local/ filename inventory for stop/operator/watchdog names"
+    ],
+    "searchEvidence": "docs/parallel-delivery-runtime-watchdog-20261102.md#legacy-stop-marker-migration"
+  },
+  "pendingSourceDeltas": {
+    "services/treasury-indexer.ts": {
+      "baseSha256": "1ed0ed57b99f36794090708794c14e70cd85a4fa74b7a5b74164276df86aeebf",
+      "candidateSha256": "6f7386ae272ae462c2b16cecefa8bb7b9cfe0bcf22ed0429428148cde3251671",
+      "deltaPath": "docs/indexer-source-delta-pending-20261102.json"
+    }
+  },
+  "approvedSourceDeltas": {
+    "services/treasury-indexer.ts": {
+      "baseSha256": "1ed0ed57b99f36794090708794c14e70cd85a4fa74b7a5b74164276df86aeebf",
+      "newSha256": "ef5c77485813f58219e8feb08767d7705545682dc12632d95812ff0f6067d788",
+      "receiptPath": "docs/current-reviewed-delta-services-treasury-indexer-ts-20261102.json",
+      "receiptSha256": "5159e434d1683ae3a48d60ac5984ee89d24e7d6613830f1d83fe7376c5eb6142"
+    },
+    "services/lease.ts": {
+      "baseSha256": "581fab685ec5bf0fcd188ad20b5b365eb5e59e728b9a54d0dc417ee0dbe7b046",
+      "newSha256": "62642ef43b8936d8d9df0309f9c262ad2db207c67d5ae915505cda41b051b3a9",
+      "receiptPath": "docs/current-reviewed-delta-services-lease-ts-20261102.json",
+      "receiptSha256": "14797cdf76dcd87a17127fc8b35cb18f027ab6296a8cee60fcbce2d6eb740717"
+    },
+    "apps/web/App.tsx": {
+      "baseSha256": "e70fef2b0f6436c09b89a2a3f1ba4f7bc3d5d5c3bdab1d0febecd152c00e0f77",
+      "newSha256": "e8bc65204e78a22ff95593834804bcf23715a4dae592547cd29b993353057e68",
+      "receiptPath": "docs/current-reviewed-delta-apps-web-App-tsx-20261102.json",
+      "receiptSha256": "9467a19522fa0bc6c5c1a464248e5b66107e1bba78200cf27defc963c4a469bb"
+    },
+    "apps/web/Inbox.tsx": {
+      "baseSha256": "41eea0b80e8a6f36cecc84a0eb787829c612f1e47ac0c8e36cccf5e97ef1df6e",
+      "newSha256": "2696e55cb7665f4e0d53f71665f282a840fd97ef151343a961bd4568420bbc18",
+      "receiptPath": "docs/current-reviewed-delta-apps-web-Inbox-tsx-20261102.json",
+      "receiptSha256": "5e30abca5aabd185fd6686378e34c6fc1a8efbf0eabc6953c8214bfce0697bd6"
+    },
+    "apps/web/Policy.tsx": {
+      "baseSha256": "c895ca4dba6cba0d7ba8166dc17c0c0a0f11cac7af86e6abe908b25b19a1fbef",
+      "newSha256": "162cf7d8bf127655c657f0c9142c7168daba1289411794e37431ffc4e4a790bd",
+      "receiptPath": "docs/current-reviewed-delta-apps-web-Policy-tsx-20261102.json",
+      "receiptSha256": "101cd2174d996129ff9eb19d9e6ca28fe216c4478281109533f4c37248af20e6"
+    },
+    "C:/Users/user/portfolio-build/tools/product_lock.py": {
+      "baseSha256": "460bf472091b3d283b70d4e287074c3e499b2aa192171dc5d312a346adcc0e64",
+      "newSha256": "2822b1561b81a7ed3a765d065713ab3f204e9cb79199d40fb56f366e7a0ce9f0",
+      "receiptPath": "docs/current-reviewed-delta-shared-product-lock-20261102.json",
+      "receiptSha256": "bb36c11d1a97b1888bc9f6b7b662e2c69cc17595c355fba7ea529f00a979a432"
+    }
+  },
+  "watchdogBindingReview": {
+    "path": "docs/independent-review-watchdog-binding-bootstrap-20261102.json",
+    "sha256": "a712f322725b5ba7a160ff50a33e48f5428633da5629a01e06b7dae50bb2e7c4"
+  },
+  "watchdogTriggerReview": {
+    "path": "docs/independent-review-watchdog-trigger-20261102.json",
+    "sha256": "5e095f22bc41bff4b6c66272b46a0b0aaf889195594dffa8d80015c15b32b4ad"
+  },
+  "watchdogRunLevelReview": {
+    "path": "docs/independent-review-watchdog-runlevel-20261102.json",
+    "sha256": "afedb36f08a23226895f8c31cae537aa890eebbd953a1e4559a5f5dc9c2b797b"
+  },
+  "watchdogNativeIdentityReview": {
+    "path": "docs/independent-review-watchdog-native-identity-20261102.json",
+    "sha256": "429b8c185740b0ce857522e8db06a0849edb37c43861d7bf4ff6a754d960c262"
+  },
+  "watchdogOwnerTimestampReview": {
+    "path": "docs/independent-review-watchdog-owner-timestamps-20261102.json",
+    "sha256": "1004150dbc424f3114fca681b6670671e03906ed4fdaac178c4de41e6a1831f4"
+  }
+}

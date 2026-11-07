@@ -1,0 +1,10 @@
+No files changed, compilation skipped
+2026-11-07T04:05:28.585146Z  WARN evm::traces::external: etherscan config not found
+
+Ran 3 tests for contracts/test/BatchExecutor.t.sol:BatchExecutorTest
+[PASS] testExactTransferAndReplay() (gas: 346399)
+[PASS] testOnlySafe() (gas: 37312)
+[PASS] testThirdTransferRollback() (gas: 323158)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 2.76ms (2.28ms CPU time)
+
+Ran 1 test suite in 5.55ms (2.76ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)

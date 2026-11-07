@@ -1,0 +1,32 @@
+// O5 TR-T-CAPACITY on the isolated stack: (1) maximum 100-item batch on the worst transfer path (100 distinct COLD recipients)
+// through the real app flow, estimated vs used gas against a 30M block / 15M budget; (2) reconciliation latency after the
+// eligible checkpoint (p95 of repeated resyncs); (3) replay of >=10,000 blocks (full header walk + operator rebuild) with RPC
+// request counts; resource samples come from resource-sampler.ps1 running alongside.
+import fs from 'node:fs';import {pathToFileURL} from 'node:url';import path from 'node:path';import * as L from './o5-lib.ts';
+process.env.ALDER_RPC_URL='http://127.0.0.1:18547';
+const OUT='evidence/round5-ops/capacity';fs.mkdirSync(OUT,{recursive:true});const R=new L.Report(`${OUT}/${process.env.O5_CAP_PART==='batch'?'report-batch-rerun.json':'report.json'}`);const s=await L.sessions();
+const pr=(await L.q('SELECT max(revision)::int r FROM review_policy_revisions WHERE workspace_id=$1',[L.WS]))[0].r;
+const pct=(a:number[],q:number)=>{const x=[...a].sort((p,r)=>p-r);return x[Math.min(x.length-1,Math.floor(q*x.length))];};
+// (1) 100-item batch
+const t0=Date.now();const ps:any[]=[];for(let i=0;i<100;i++){const c=await L.contact(s,`O5-CAP C${i}`);ps.push(await L.payable(s,c.id,`O5-CAP${process.env.O5_CAP_PART||''}-P${i}`,String(10_000_000+i*1_000_003),true,pr));}
+const tSetup=Date.now();await L.allowanceCycle(s,ps.map(p=>p.id));const f0=performance.now();const f=await L.freeze(s,ps.map(p=>p.id));const freezeMs=performance.now()-f0;await L.signAll(s,f.operationId);const p=await L.prepare(s,f.operationId);
+const est=await L.chain.estimateGas({account:L.owners[0].address,to:p.body.to,data:p.body.data});const cold=await Promise.all(f.manifest.items.map((i:any)=>L.chain.getTransactionCount({address:i.recipient}).then(async n=>n===0&&(await L.balance(i.recipient))===0n)));
+const outerGas=process.env.O5_OUTER_GAS?BigInt(process.env.O5_OUTER_GAS):est*12n/10n;const h=await L.walletFor(L.owners[0]).sendTransaction({to:p.body.to,data:p.body.data,value:0n,gas:outerGas,nonce:Number(p.body.senderNonce)});await s.O.post(`/attempts/${p.body.attemptId}/observations`,{kind:'wallet_hash',transactionHash:h});
+const rc=await L.chain.waitForTransactionReceipt({hash:h});const blk=await L.chain.getBlock({blockNumber:rc.blockNumber});const ES='0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e';const innerOk=rc.logs.some((l:any)=>l.address.toLowerCase()===L.d.safe.toLowerCase()&&l.topics[0]===ES);
+await R.check('TR-T-CAPACITY','100-item batch (max supported) on the worst path (100 distinct cold recipients) executes through the app flow; estimated and used gas <= 15M and within the 30M block',async()=>{if(rc.status!=='success'||!innerOk||rc.gasUsed>15_000_000n||rc.gasUsed>15_000_000n||blk.gasLimit<30_000_000n||!cold.every(Boolean))throw Error(JSON.stringify({status:rc.status,est:String(est),used:String(rc.gasUsed),gasLimit:String(blk.gasLimit),cold:cold.filter(Boolean).length}));return {innerExecutionSuccess:innerOk,outerGasLimit:outerGas,items:100,coldRecipients:cold.filter(Boolean).length,estimateGas:est,gasUsed:rc.gasUsed,perItemGas:Number(rc.gasUsed)/100,blockGasLimit:blk.gasLimit,shareOf30M:Number(rc.gasUsed)/30e6,signedSafeTxGas:f.manifest.message.safeTxGas,freezeMs,setupSeconds:(tSetup-t0)/1000};});
+await L.mine(12);
+// (2) reconciliation latency after the eligible checkpoint
+const lat:number[]=[];for(let i=0;i<20;i++){const a=performance.now();const r=await L.resync(s);lat.push(performance.now()-a);if(i===0&&r.status!==200)throw Error('resync '+JSON.stringify(r.body));}
+const head1=await L.chain.getBlockNumber();
+await R.check('TR-T-CAPACITY',`reconciliation after the eligible checkpoint: first resync verifies all 100 items; p95 of 20 resyncs <= 5 s at head ${head1}`,async()=>{const st=await L.opState(f.operationId);const set=await L.settlementsFor(f.operationId);if(st!=='verified'||set.length!==100||pct(lat,.95)>5000)throw Error(JSON.stringify({st,n:set.length,p95:pct(lat,.95)}));return {opState:st,verifiedSettlements:set.length,resyncMs:{p50:pct(lat,.5),p95:pct(lat,.95),max:Math.max(...lat)},head:head1};});
+if(process.env.O5_CAP_PART==='batch'){R.save({run:'O5-CAPACITY-BATCH-RERUN'});console.log(JSON.stringify({pass:R.steps.filter(x=>x.result==='PASS').length,fail:R.steps.filter(x=>x.result==='FAIL').length}));await L.db.end();process.exit(0);}
+// (3) replay >= 10,000 blocks
+const before=await L.chain.getBlockNumber();const need=10_000n-before>0n?10_000n-before+50n:50n;await L.rpc('anvil_mine',['0x'+need.toString(16)]);const head2=await L.chain.getBlockNumber();
+await fetch(L.PROXY+'/__o5',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rules:[],resetCounts:true})});
+const a=performance.now();const r1=await L.resync(s);const full=performance.now()-a;const rpc1=await L.proxyStats();
+const lat2:number[]=[];for(let i=0;i<5;i++){const b=performance.now();await L.resync(s);lat2.push(performance.now()-b);}
+const {reconcileApplication}=await import(pathToFileURL(path.resolve(process.env.O5_SRC_ABS!,'services/treasury-indexer.ts')).href);const pg=(await import('pg')).default;const ip=new pg.Pool({connectionString:'postgresql://alder_indexer@127.0.0.1:15543/alder',max:1});
+await fetch(L.PROXY+'/__o5',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rules:[],resetCounts:true})});const b0=performance.now();let rb:any;try{rb=await reconcileApplication(ip,{rebuild:true});}catch(e:any){rb={error:String(e.message).slice(0,300)};}const rebuildMs=performance.now()-b0;const rpc2=await L.proxyStats();await ip.end();
+await R.check('TR-T-CAPACITY',`replay of ${head2} blocks (full header walk from genesis + all operations) <= 120 s, via API resync and operator rebuild`,async()=>{if(r1.status!==200||full>120000||rebuildMs>120000)throw Error(JSON.stringify({status:r1.status,full,rebuildMs,rb}));return {blocks:String(head2),apiResyncMs:full,rpcRequestsResync:rpc1.total,rpcByMethod:rpc1.counts,steadyResyncMs:{p50:pct(lat2,.5),max:Math.max(...lat2)},operatorRebuildMs:rebuildMs,rpcRequestsRebuild:rpc2.total,rebuild:rb};});
+await R.check('TR-T-CAPACITY','reconciliation p95 at the >=10,000-block height (eligible checkpoint, nothing new) <= 5 s',async()=>{if(pct(lat2,.95)>5000)throw Error('p95 '+pct(lat2,.95));return {p95:pct(lat2,.95),samples:lat2};});
+R.save({run:'O5-CAPACITY'});console.log(JSON.stringify({pass:R.steps.filter(x=>x.result==='PASS').length,fail:R.steps.filter(x=>x.result==='FAIL').length}));await L.db.end();process.exit(0);

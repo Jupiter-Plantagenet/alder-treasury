@@ -1,0 +1,73 @@
+# Windows-hosted Docker Desktop variant. Files are transferred with docker cp into
+# per-run named volumes instead of bind-mounting a Windows path into the Linux VM.
+services:
+  hub:
+    image: $ALDER_REPRO_IMAGE
+    user: node
+    network_mode: none
+    command: ["bash", "-lc", "while :; do sleep 3600; done"]
+    environment:
+      ALDER_REPRO_NAMESPACE: "1"
+      ALDER_REPRO_PROJECT: $ALDER_REPRO_PROJECT
+      ALDER_REPRO_ACQUISITION_DIR: /opt/acquisition
+      ALDER_DB_PORT: "5543"
+      ALDER_CHAIN_RPC_URL: http://127.0.0.1:8547
+      ALDER_API_ORIGIN: https://127.0.0.1:8103
+      ALDER_ORIGIN: https://127.0.0.1:5113
+      ALDER_W5_BROWSER: /opt/acquisition/chrome-linux64/chrome
+      ALDER_ACCOUNTS_FILE: .local/accounts.json
+      ALDER_DEPLOYMENT_FILE: evidence/app-deployment.json
+    volumes:
+      - repro_input:/input
+      - repro_toolchain:/opt/toolchain
+      - repro_acquisition:/opt/acquisition
+      - repro_work:/work
+      - repro_proof:/proof
+    healthcheck:
+      test: ["CMD-SHELL", "node --version | grep -qx v26.7.0"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+  postgres:
+    image: postgres@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    network_mode: service:hub
+    depends_on:
+      hub:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: alder
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    command: ["postgres", "-p", "5543", "-c", "listen_addresses=127.0.0.1"]
+    volumes:
+      - repro_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5543 -U postgres -d alder"]
+      interval: 2s
+      timeout: 2s
+      retries: 40
+  anvil:
+    image: $ALDER_REPRO_IMAGE
+    network_mode: service:hub
+    depends_on:
+      hub:
+        condition: service_healthy
+    entrypoint: ["/opt/toolchain/foundry/anvil"]
+    command: ["--host", "127.0.0.1", "--port", "8547", "--chain-id", "31337", "--hardfork", "shanghai", "--silent"]
+    volumes:
+      - repro_toolchain:/opt/toolchain
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8547',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_chainId',params:[]})}).then(r=>r.json()).then(x=>process.exit(x.result==='0x7a69'?0:1)).catch(()=>process.exit(1))\""]
+      interval: 2s
+      timeout: 2s
+      retries: 40
+volumes:
+  repro_input:
+    name: $ALDER_REPRO_SOURCE_VOLUME
+  repro_toolchain:
+    name: $ALDER_REPRO_TOOLCHAIN_VOLUME
+  repro_acquisition:
+    name: $ALDER_REPRO_ACQUISITION_VOLUME
+  repro_work:
+  repro_proof:
+  repro_pgdata:

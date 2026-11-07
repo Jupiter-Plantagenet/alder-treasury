@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {encodeFunctionData,hashTypedData,parseAbi,zeroAddress} from 'viem';
+import {preparedOuterGas,runAllowanceStages} from './round5-ops/o5-lib.ts';
+
+const safeAbi=parseAbi(['function execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes) returns(bool)']);
+const types={SafeTx:[{name:'to',type:'address'},{name:'value',type:'uint256'},{name:'data',type:'bytes'},{name:'operation',type:'uint8'},{name:'safeTxGas',type:'uint256'},{name:'baseGas',type:'uint256'},{name:'gasPrice',type:'uint256'},{name:'gasToken',type:'address'},{name:'refundReceiver',type:'address'},{name:'nonce',type:'uint256'}]} as const;
+const address='0x1111111111111111111111111111111111111111' as const;
+function fixture(){const message={to:address,value:0n,data:'0x' as const,operation:0,safeTxGas:500_000n,baseGas:0n,gasPrice:0n,gasToken:zeroAddress,refundReceiver:zeroAddress,nonce:4n};const m={safe:address,threshold:2,message,safeTxHash:hashTypedData({domain:{chainId:31337,verifyingContract:address},types,primaryType:'SafeTx',message})};const tx={to:address,value:'0x0',chainId:'0x7a69',senderNonce:'7',data:encodeFunctionData({abi:safeAbi,functionName:'execTransaction',args:[message.to,message.value,message.data,message.operation,message.safeTxGas,message.baseGas,message.gasPrice,message.gasToken,message.refundReceiver,('0x'+'00'.repeat(130)) as `0x${string}`]})};return {m,tx};}
+function provider(estimate='0x186a0',pending='0x7',block='0x1c9c380'){return {request:async({method}:any)=>method==='eth_getTransactionCount'?pending:method==='eth_getBlockByNumber'?{gasLimit:block}:estimate};}
+
+test('prepared outer gas uses exact estimate plus bounded headroom and Safe floor',async()=>{const {m,tx}=fixture();const out=await preparedOuterGas(provider(),address,m,tx);assert.equal(out.estimate,100_000n);assert.ok(out.gasLimit>=558_437n);assert.ok(out.gasLimit<=out.cap);});
+test('prepared outer gas rejects stale sender nonce and cap overflow',async()=>{const {m,tx}=fixture();await assert.rejects(preparedOuterGas(provider('0x186a0','0x8'),address,m,tx),/PREPARED_SENDER_NONCE_MISMATCH/);await assert.rejects(preparedOuterGas(provider('0x1c9c381'),address,m,tx),/PREPARED_OUTER_GAS_ESTIMATE_OUT_OF_RANGE/);});
+test('allowance stage executes zero reset once, then bounded grant once for same IDs',async()=>{let proposals=0;const executed:string[]=[];const result=await runAllowanceStages(async()=>({id:`op-${++proposals}`,manifest:{reset:proposals===1}}),async op=>{executed.push(op.id);});assert.equal(proposals,2);assert.deepEqual(executed,['op-1','op-2']);assert.equal(result.id,'op-2');});
+test('allowance stage executes an ordinary bounded grant only once',async()=>{let proposals=0;const executed:string[]=[];const result=await runAllowanceStages(async()=>({id:`op-${++proposals}`,manifest:{reset:false}}),async op=>{executed.push(op.id);});assert.equal(proposals,1);assert.deepEqual(executed,['op-1']);assert.equal(result.id,'op-1');});

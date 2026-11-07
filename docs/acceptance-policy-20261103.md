@@ -1,0 +1,13 @@
+# Alder portfolio-ready completion policy — 2026-11-03
+
+The user explicitly selected: "Portfolio-ready: keep correctness/security/recovery mandatory; report performance targets as advisory (Recommended)" in this chat on November 3, 2026. This changes the completion gate; it does not rewrite the original acceptance register or historical measurements.
+
+Mandatory completion requirements are a working local portfolio application; exact accounting and intended-payment binding; atomicity, replay protection and truthful settlement states; authorization, workspace isolation and private-data controls; persisted workflow and safe recovery; a demonstrated database, private-file and chain restore; reviewed current source, a reproducible source/build package and an honest operator handoff. Existing authorizations for simulated AI stewards and explicit source-review substitutions remain valid. A source review must remain labeled reviewed rather than executed.
+
+The exact numerical load, latency, capacity, hardware, disk-footprint and recovery-speed targets are advisory benchmarks. This includes the 30-minute/100-session/20-read-per-second/5-write-per-second load schedule; API, SSE, browser and reconciliation latency targets; the reference 4-core/16-GiB profile, 8-GiB RSS and 12-GiB disk targets; replay time and RPO/RTO speed objectives. Their original values, attempted profiles and results remain reportable. Missing or failed measurements do not become passes. Application gas safety limits and transaction validity checks remain enforced; this policy does not permit an unsafe transaction or change a signed intent.
+
+Human signoff, manual accessibility/screen-reader acceptance, additional native-TLS/browser/manual-wallet checks, separate Windows runtime and clean-host independent reproduction remain waived as completion blockers under the previously recorded user instructions. They remain waived/not executed where no actual evidence exists.
+
+The user has already waived host RAM and commit admission gates. Heavy-work coordination, disk-space checks, exact ownership checks for scratch resources, and evidence preservation remain operational safeguards. Existing SSD data, canonical PostgreSQL and chain lineage must be preserved; D: and unrelated projects/processes remain out of scope. No public deployment, real-value transaction, credential disclosure, or destructive SSD formatting is authorized by this decision.
+
+The final packet must distinguish mandatory PASS/reviewed evidence, advisory PASS/FAIL/not measured, explicit waivers, and any remaining mandatory blocker. Portfolio-ready status is a local portfolio handoff and does not claim production readiness, financial certification, or independent external audit.

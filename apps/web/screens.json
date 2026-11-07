@@ -1,0 +1,54 @@
+[
+  {
+    "id": "overview",
+    "title": "Treasury workspace"
+  },
+  {
+    "id": "payables",
+    "title": "Payables inbox"
+  },
+  {
+    "id": "payable",
+    "title": "Payable detail"
+  },
+  {
+    "id": "policy",
+    "title": "Review policy"
+  },
+  {
+    "id": "batch",
+    "title": "Build payment batch"
+  },
+  {
+    "id": "intent",
+    "title": "Review signing intent"
+  },
+  {
+    "id": "signatures",
+    "title": "Collect signatures"
+  },
+  {
+    "id": "execution",
+    "title": "Transaction execution"
+  },
+  {
+    "id": "settlement",
+    "title": "Settlement reconciliation"
+  },
+  {
+    "id": "recovery",
+    "title": "Recover & resynchronize"
+  },
+  {
+    "id": "activity",
+    "title": "Activity & evidence"
+  },
+  {
+    "id": "contacts",
+    "title": "Contractor directory"
+  },
+  {
+    "id": "settings",
+    "title": "Workspace & access settings"
+  }
+]

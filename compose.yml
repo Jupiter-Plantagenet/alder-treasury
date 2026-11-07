@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    container_name: alder-postgres
+    ports: ["127.0.0.1:5543:5432"]
+    environment:
+      POSTGRES_DB: alder
+      POSTGRES_HOST_AUTH_METHOD: trust
+    # Retained deployment: fail closed if its preserved volume is unavailable.
+    # Never fall back to initdb or to the archived Windows bind directory.
+    entrypoint: ["sh", "-c", "test \"$$(cat /var/lib/postgresql/data/PG_VERSION)\" = 16 && test -s /var/lib/postgresql/data/global/pg_control && exec docker-entrypoint.sh postgres"]
+    volumes: ["retained_postgres:/var/lib/postgresql/data"]
+
+volumes:
+  retained_postgres:
+    external: true
+    name: alder-pgdata-preserved-20261101t1400z-stream1

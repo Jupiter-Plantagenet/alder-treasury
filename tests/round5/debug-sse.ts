@@ -1,0 +1,5 @@
+import '../tls-trust.ts';// @ts-nocheck  B5 debugging probe for SSE cursor replay (read-only)
+import {S5,q,db} from './b5-lib.ts';import {Session,WS as WS5} from '../round4/api-client.ts';
+const s=await Session.login('owner');const rows=await q('SELECT id::text FROM events WHERE workspace_id=$1 ORDER BY id DESC LIMIT 6',[WS5]);const cursor=rows[5].id;
+const ac=new AbortController();const r=await fetch(`https://127.0.0.1:5103/api/v1/workspaces/${WS5}/events/stream`,{headers:{cookie:s.cookie,'last-event-id':cursor},signal:ac.signal});if(!r.body)throw Error('SSE_BODY_MISSING');const rd=r.body.getReader();let txt='';const t=Date.now();while(Date.now()-t<2500){const {value}=await Promise.race([rd.read(),new Promise<{value:undefined}>(res=>setTimeout(()=>res({value:undefined}),500))]);if(value)txt+=new TextDecoder().decode(value);}ac.abort();
+console.log('cursor',cursor,'expected',rows.slice(0,5).map(r=>r.id).reverse().join(','));console.log([...txt.matchAll(/^id: (\d+)/gm)].map(m=>m[1]).slice(0,12).join(','));console.log(txt.split('\n').slice(0,3).join(' | '));await db.end();

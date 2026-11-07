@@ -1,0 +1,61 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import pg from 'pg';
+import {projectDestinationHolds} from '../apps/api/destination-holds.ts';
+import {manifestDigest} from '../services/verifier.ts';
+import {INVALIDATION_VERIFIER_VERSION} from '../services/invalidation-verifier.ts';
+
+const lineage:any={chainId:31337,genesisHash:'0x'+'11'.repeat(32),chainKey:'http://127.0.0.1:8547:0x'+'11'.repeat(32),headNumber:'3418',headHash:'0x'+'22'.repeat(32)};
+
+test('real PostgreSQL hold projection fails closed on invalid proof, wrong or duplicate released items, and remaining reservations; fixtures roll back',async()=>{
+ const cfg=JSON.parse(fs.readFileSync('.local/database.json','utf8')).app;
+ const pool=new pg.Pool({connectionString:`postgresql://${cfg.user}:${encodeURIComponent(cfg.password)}@127.0.0.1:5543/alder_v2_test`,max:1});
+ const db=await pool.connect();const ws='33333333-3333-4333-8333-333333333333';
+ const op='11111111-1111-4111-8111-111111111111',inv='22222222-2222-4222-8222-222222222222',batch='0x'+'33'.repeat(32),batchUuid='66666666-6666-4666-8666-666666666666',payable='44444444-4444-4444-8444-444444444444',payable2='77777777-7777-4777-8777-777777777777',payableWrong='88888888-8888-4888-8888-888888888888',payableDuplicate='99999999-9999-4999-8999-999999999999',payment='0x'+'aa'.repeat(32),payment2='0x'+'bb'.repeat(32),paymentWrong='0x'+'cc'.repeat(32),contact='55555555-5555-4555-8555-555555555555',safeHash='0x'+'44'.repeat(32);
+ const targetManifest={kind:'payout',genesis:lineage.genesisHash,safeTxHash:safeHash,batchId:batch,message:{nonce:'7'},items:[{paymentId:payment},{paymentId:payment2}]};
+ const invalidationManifest={safeTxHash:'0x'+'99'.repeat(32),calldata:'0x1234',items:[],method:'executor_cancel',target:{operationId:op,kind:'payout',safeTxHash:safeHash,nonce:'7',batchId:batch,paymentIds:[payment,payment2]}};
+ const report:any={state:'verified',kind:'invalidation',verifierVersion:INVALIDATION_VERIFIER_VERSION,manifestDigest:manifestDigest(invalidationManifest),targetCannotExecute:true,paid:false,transactionHash:'0x'+'55'.repeat(32),blockHash:'0x'+'66'.repeat(32),blockNumber:'2108',depth:'12',targetOperationId:op,targetSafeTxHash:safeHash,targetNonce:'7',targetBatchId:batch};
+ try{
+  await db.query('BEGIN');
+  await db.query(`CREATE TEMP TABLE destination_operation_holds(workspace_id uuid,operation_id uuid,contact_id uuid,destination_revision int,at timestamptz) ON COMMIT DROP;
+   CREATE TEMP TABLE treasury_operations(workspace_id uuid,id uuid,kind text,state text,manifest jsonb) ON COMMIT DROP;
+   CREATE TEMP TABLE reservations(workspace_id uuid,payable_id uuid,batch_id uuid) ON COMMIT DROP;
+   CREATE TEMP TABLE payables(workspace_id uuid,id uuid,payment_id text,PRIMARY KEY(workspace_id,id)) ON COMMIT DROP;
+   CREATE TEMP TABLE batches(workspace_id uuid,id uuid,operation_id uuid,manifest jsonb) ON COMMIT DROP;
+   CREATE TEMP TABLE reservation_releases(workspace_id uuid,payable_id uuid,batch_id uuid,target_operation_id uuid,invalidation_operation_id uuid,report_id bigint,fence bigint) ON COMMIT DROP;
+   CREATE TEMP TABLE operation_invalidations(workspace_id uuid,operation_id uuid,target_operation_id uuid,method text,target_safe_tx_hash text,target_nonce numeric,target_batch_id text) ON COMMIT DROP;
+   CREATE TEMP TABLE treasury_reports(id bigint,workspace_id uuid,operation_id uuid,produced_by text,report jsonb) ON COMMIT DROP;
+   CREATE TEMP TABLE treasury_headers(chain_key text,number bigint,hash text,parent_hash text,canonical boolean) ON COMMIT DROP;
+   CREATE TEMP TABLE treasury_checkpoints(chain_key text,number bigint,hash text,paused boolean) ON COMMIT DROP;`);
+  await db.query('INSERT INTO destination_operation_holds VALUES($1,$2,$3,2,now())',[ws,op,contact]);
+  await db.query('INSERT INTO treasury_operations VALUES($1,$2,$3,$4,$5),($1,$6,$7,$8,$9)',[ws,op,'payout','invalidated',targetManifest,inv,'invalidation','verified',invalidationManifest]);
+  await db.query('INSERT INTO batches VALUES($1,$2,$3,$4)',[ws,batchUuid,op,targetManifest]);
+  await db.query('INSERT INTO payables VALUES($1,$2,$3),($1,$4,$5),($1,$6,$7),($1,$8,$9)',[ws,payable,payment,payable2,payment2,payableWrong,paymentWrong,payableDuplicate,payment]);
+  await db.query('INSERT INTO reservation_releases VALUES($1,$2,$3,$4,$5,7,21),($1,$6,$3,$4,$5,7,22)',[ws,payable,batchUuid,op,inv,payable2]);
+  await db.query('INSERT INTO operation_invalidations VALUES($1,$2,$3,$4,$5,$6,$7)',[ws,inv,op,'executor_cancel',safeHash,'7',batch]);
+  await db.query('INSERT INTO treasury_reports VALUES(7,$1,$2,$3,$4)',[ws,inv,'alder_indexer',report]);
+  await db.query('INSERT INTO treasury_headers VALUES($1,2108,$2,$3,true),($1,3418,$4,$5,true)',[lineage.chainKey,report.blockHash,'0x'+'77'.repeat(32),lineage.headHash,'0x'+'88'.repeat(32)]);
+  await db.query('INSERT INTO treasury_checkpoints VALUES($1,3418,$2,false)',[lineage.chainKey,lineage.headHash]);
+  const good=await projectDestinationHolds(db,ws,lineage);assert.equal(good.length,1,JSON.stringify(good));assert.equal(good[0].resolution,'resolved',JSON.stringify(good));assert.deepEqual(good[0].resolution_report_ids,['7']);
+  await db.query('UPDATE reservation_releases SET payable_id=$3 WHERE workspace_id=$1 AND payable_id=$2',[ws,payable2,payableWrong]);
+  const substituted=await projectDestinationHolds(db,ws,lineage);assert.equal(substituted[0].resolution,'unresolved');
+  await db.query('UPDATE reservation_releases SET payable_id=$3 WHERE workspace_id=$1 AND payable_id=$2',[ws,payableWrong,payable2]);
+  await db.query('UPDATE reservation_releases SET payable_id=$3 WHERE workspace_id=$1 AND payable_id=$2',[ws,payable2,payableDuplicate]);
+  const duplicated=await projectDestinationHolds(db,ws,lineage);assert.equal(duplicated[0].resolution,'unresolved');
+  await db.query('UPDATE reservation_releases SET payable_id=$3 WHERE workspace_id=$1 AND payable_id=$2',[ws,payableDuplicate,payable2]);
+  await db.query("UPDATE treasury_reports SET report=jsonb_set(report,'{state}','\"retracted\"') WHERE id=7");
+  const retracted=await projectDestinationHolds(db,ws,lineage);assert.equal(retracted[0].resolution,'unresolved');
+  await db.query('UPDATE treasury_reports SET report=$1 WHERE id=7',[report]);
+  await db.query("UPDATE treasury_reports SET report=jsonb_set(report,'{blockNumber}','\"malformed\"') WHERE id=7");
+  const malformed=await projectDestinationHolds(db,ws,lineage);assert.equal(malformed[0].resolution,'unresolved');
+  await db.query('UPDATE treasury_reports SET report=$1 WHERE id=7',[report]);
+  await db.query('UPDATE treasury_checkpoints SET paused=true');
+  const paused=await projectDestinationHolds(db,ws,lineage);assert.equal(paused[0].resolution,'unresolved');
+  await db.query('UPDATE treasury_checkpoints SET paused=false');
+  await db.query('INSERT INTO reservations VALUES($1,$2,$3)',[ws,payable,batchUuid]);
+  const held=await projectDestinationHolds(db,ws,lineage);assert.equal(held[0].resolution,'unresolved');
+  await db.query('ROLLBACK');
+  const gone=await db.query("SELECT to_regclass('pg_temp.destination_operation_holds') IS NULL AS absent");assert.equal(gone.rows[0].absent,true);
+ }catch(e){await db.query('ROLLBACK').catch(()=>{});throw e;}finally{db.release();await pool.end();}
+});

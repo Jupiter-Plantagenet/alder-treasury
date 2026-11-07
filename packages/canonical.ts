@@ -1,0 +1,3 @@
+// JSON object order is not a semantic request difference; array order is.
+export function canonicalJson(value:any):string {if(value===undefined)return 'null';if(value===null||typeof value!=='object')return JSON.stringify(value);if(Array.isArray(value))return '['+value.map(canonicalJson).join(',')+']';return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+canonicalJson(value[k])).join(',')+'}';}
+export function requestFingerprint(req:any){const url=new URL(req.url,'http://127.0.0.1');url.searchParams.sort();return canonicalJson({schema:1,method:req.method,target:url.pathname+url.search,ifMatch:req.headers['if-match']??null,body:req.body??null});}

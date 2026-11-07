@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS chain_headers(number bigint NOT NULL, hash text PRIMARY KEY,parent_hash text NOT NULL,canonical boolean NOT NULL DEFAULT true);
+CREATE UNIQUE INDEX IF NOT EXISTS canonical_height ON chain_headers(number) WHERE canonical;
+CREATE TABLE IF NOT EXISTS chain_logs(block_hash text NOT NULL,tx_hash text NOT NULL,log_index integer NOT NULL,body jsonb NOT NULL,canonical boolean NOT NULL,PRIMARY KEY(block_hash,tx_hash,log_index));
+CREATE TABLE IF NOT EXISTS chain_checkpoint(id integer PRIMARY KEY CHECK(id=1),number bigint NOT NULL,hash text NOT NULL,paused boolean NOT NULL DEFAULT false,reason text);
+CREATE TABLE IF NOT EXISTS proof_operations(id text PRIMARY KEY,manifest jsonb NOT NULL,state text NOT NULL DEFAULT 'uncertain',report jsonb,reserved boolean NOT NULL DEFAULT true);
+CREATE TABLE IF NOT EXISTS proof_history(id bigserial PRIMARY KEY,operation_id text NOT NULL,state text NOT NULL,report jsonb,at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS users(id uuid PRIMARY KEY,email text UNIQUE NOT NULL,password_hash text NOT NULL,salt text NOT NULL,name text NOT NULL);
+CREATE TABLE IF NOT EXISTS memberships(workspace_id uuid NOT NULL,user_id uuid NOT NULL REFERENCES users(id),roles text[] NOT NULL,PRIMARY KEY(workspace_id,user_id));
+CREATE TABLE IF NOT EXISTS sessions(token_hash text PRIMARY KEY,user_id uuid NOT NULL REFERENCES users(id),csrf text NOT NULL,expires_at timestamptz NOT NULL);
+CREATE TABLE IF NOT EXISTS payables(workspace_id uuid NOT NULL,id uuid NOT NULL,display_reference text NOT NULL,contact text NOT NULL,service text NOT NULL,recipient text NOT NULL,amount_units numeric(78,0) NOT NULL CHECK(amount_units>0),revision integer NOT NULL DEFAULT 1,prepared_by uuid NOT NULL REFERENCES users(id),reviewed_by uuid REFERENCES users(id),verified boolean NOT NULL DEFAULT false,payment_id text NOT NULL,PRIMARY KEY(workspace_id,id),UNIQUE(workspace_id,display_reference),CHECK(reviewed_by IS NULL OR reviewed_by<>prepared_by));
+CREATE TABLE IF NOT EXISTS batches(workspace_id uuid NOT NULL,id uuid NOT NULL,manifest jsonb NOT NULL,created_by uuid NOT NULL REFERENCES users(id),state text NOT NULL DEFAULT 'frozen',PRIMARY KEY(workspace_id,id));
+CREATE TABLE IF NOT EXISTS reservations(workspace_id uuid NOT NULL,payable_id uuid NOT NULL,batch_id uuid NOT NULL,PRIMARY KEY(workspace_id,payable_id),FOREIGN KEY(workspace_id,payable_id) REFERENCES payables(workspace_id,id),FOREIGN KEY(workspace_id,batch_id) REFERENCES batches(workspace_id,id));
+CREATE TABLE IF NOT EXISTS signatures(workspace_id uuid NOT NULL,batch_id uuid NOT NULL,owner text NOT NULL,signature text NOT NULL,PRIMARY KEY(workspace_id,batch_id,owner),FOREIGN KEY(workspace_id,batch_id) REFERENCES batches(workspace_id,id));
+CREATE TABLE IF NOT EXISTS events(id bigserial PRIMARY KEY,workspace_id uuid NOT NULL,actor_id uuid NOT NULL,kind text NOT NULL,data jsonb NOT NULL,at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS idempotency(workspace_id uuid NOT NULL,actor_id uuid NOT NULL,command text NOT NULL,key text NOT NULL,digest text NOT NULL,result jsonb NOT NULL,PRIMARY KEY(workspace_id,actor_id,command,key));

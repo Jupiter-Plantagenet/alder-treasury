@@ -1,0 +1,382 @@
+{
+  "release": "0.1.0-local-integration-v2",
+  "verdict": "NO_GO_FOR_RELEASE",
+  "all_original_acceptance_ids_preserved": true,
+  "tests": [
+    {
+      "id": "TR-T-FLOW",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/browser/report.json",
+        "evidence/browser/trace.zip",
+        "evidence/browser-wallet-v2/report.json",
+        "evidence/browser-wallet-v2/trace.zip",
+        "evidence/browser-wallet-v2-final.log",
+        "evidence/tests-v2-current-wallet.log"
+      ],
+      "observation_or_remaining_gate": "Actual isolated browser EIP1193 fixture wallet \u2192 separately signed zero-first bounded allowance \u2192 payout quorum \u2192 exact PG business settlement at depth12 \u2192 real15-block replacement retracts all3,13screens. Not full intake/admin/attachment/extension/manual release workflow."
+    },
+    {
+      "id": "TR-T-INBOX",
+      "release_status": "partial",
+      "evidence": [
+        "apps/web/App.tsx",
+        "evidence/browser/report.json"
+      ],
+      "observation_or_remaining_gate": "Live DB inbox and client exact filters, no intake/upload/import/pagination yet."
+    },
+    {
+      "id": "TR-T-REVIEW",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/tests-final.log",
+        "evidence/browser/report.json"
+      ],
+      "observation_or_remaining_gate": "Different authenticated reviewer, revision check and freeze hold; full revision/policy/destination lifecycle pending."
+    },
+    {
+      "id": "TR-T-DESTINATION",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Full checksummed address visible; label never authority; second actor verification required; address edit holds and requires fresh review; signed original remains invalidation-needed"
+    },
+    {
+      "id": "TR-T-POLICY",
+      "release_status": "partial",
+      "evidence": [
+        "apps/api/app.ts",
+        "evidence/tests-final.log"
+      ],
+      "observation_or_remaining_gate": "No settings role impersonation; preparer/reviewer/owner/accountant server roles. Full policy/admin commands absent."
+    },
+    {
+      "id": "TR-T-UNITS",
+      "release_status": "partial",
+      "evidence": [
+        "tests/units.test.ts",
+        "evidence/tests-final.log"
+      ],
+      "observation_or_remaining_gate": "Exact parser/formatter boundaries exercised; full uint256 property population pending."
+    },
+    {
+      "id": "TR-T-BINDING",
+      "release_status": "partial",
+      "evidence": [
+        "tests/chain-proof.ts",
+        "evidence/critical-proof-final.log",
+        "evidence/prepared-outer-v2-green.log",
+        "packages/prepared.ts",
+        "evidence/prepared-outer-v2-current.log",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Browser independently reconstructs Safe typed hash/calldata, verifies genesis/runtime/nonce, and independently decodes final prepared OUTER wallet request. Actual prepare-response destination tamper blocked before eth_sendTransaction. Complete signed-field mutation population/independent review remains."
+    },
+    {
+      "id": "TR-T-QUORUM",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/operations-v2-green.log",
+        "evidence/browser-wallet-v2-final.log",
+        "evidence/tests-v2-current-wallet.log",
+        "evidence/browser-wallet-v2/report.json"
+      ],
+      "observation_or_remaining_gate": "Actual distinct EOA signatures via isolated browser, current owners/threshold/runtime checked, partial quorum blocked. Complete malformed/duplicate/reordering/authority-change negative matrix pending."
+    },
+    {
+      "id": "TR-T-1271",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Baseline UI/API explicitly reject unsupported schemes before executable state; no generic EIP-1271 claim. If future adapter enabled, both legacy bytes and modern bytes32 tests including state change/magic/revert/gas must pass"
+    },
+    {
+      "id": "TR-T-ATOMIC",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/failure-receipt.json",
+        "evidence/critical-proof-final.log",
+        "evidence/contracts-final.log",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Third-transfer revert rolls all effects/IDs/logs back while Safe nonce advances. False-return/delta/reentrancy populations pending."
+    },
+    {
+      "id": "TR-T-REPLAY",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/contracts-final.log",
+        "evidence/critical-proof-final.log",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Safe nonce replay, executor batch replay, duplicate payment ID, expiry and cancellation cases. Complete cross-batch/time/cancel race schedule pending."
+    },
+    {
+      "id": "TR-T-FUZZ",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/contracts-final.log",
+        "evidence/invariant-v2.log",
+        "evidence/contracts-v2-vendored.log",
+        "evidence/contracts-v2-current.log"
+      ],
+      "observation_or_remaining_gate": "Executed10000 amount fuzz cases plus1000 stateful invariant runs x128depth=128000 actual handler calls,0reverts; realSafe signature path, conservation/replay/cancel/expiry/third-transfer rollback. Missing broader array/time/recipient/malicious-callback populations and independent review."
+    },
+    {
+      "id": "TR-T-ALLOWANCE",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/contracts-final.log",
+        "tests/chain-proof.ts",
+        "evidence/browser-wallet-v2-final.log",
+        "tests/allowance.test.ts",
+        "evidence/tests-v2-current-wallet.log",
+        "evidence/browser-wallet-v2/report.json"
+      ],
+      "observation_or_remaining_gate": "Real separate quorum browser allowance, explicit zero reset when nonzero then exact next-batch cap, independent Approval/Safe proof, payout nonce frozen afterwards. Complete malicious delegate/change race population pending."
+    },
+    {
+      "id": "TR-T-STATUS",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/critical-proof-final.log",
+        "evidence/operations-v2-green.log",
+        "evidence/app-settlement-v2-green.log",
+        "evidence/browser-wallet-v2-final.log"
+      ],
+      "observation_or_remaining_gate": "Immutable attempt exists before wallet request; hash/refusal/unknown are observations only; matching Safe history can recover hash-less payout; outer success before depth never paid. Full application outer-revert/inner-failure/replacement presentation and failure populations incomplete."
+    },
+    {
+      "id": "TR-T-CANCEL",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Only canonical executor cancellation or nonce consumption/expiry invalidates defined path; cancellation pending never promises revocation; either payout or invalidation canonical wins; DB deletion cannot revoke"
+    },
+    {
+      "id": "TR-T-REORG",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/reorg-report.json",
+        "evidence/critical-proof-final.log",
+        "evidence/browser-wallet-v2-final.log",
+        "evidence/AL-01-expanded-green.log",
+        "docs/INDEPENDENT-FINDINGS-v2.md",
+        "evidence/tests-v2-current-wallet.log",
+        "evidence/browser-wallet-v2/report.json",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Real app15-block replacement retracts3 paid projections, keeps reservations, deep pauses; mixed RPC fork/view and overlapping-poller regressions fixed with real PG transactions. Shallow/invalidation-orphan/full app replay and continuous monitoring incomplete."
+    },
+    {
+      "id": "TR-T-VERIFY",
+      "release_status": "partial",
+      "evidence": [
+        "services/verifier.ts",
+        "evidence/verifier-report.json",
+        "evidence/verifier-green.log",
+        "services/treasury-indexer.ts",
+        "services/allowance-verifier.ts",
+        "evidence/browser-wallet-v2-final.log",
+        "evidence/AL-01-expanded-green.log",
+        "evidence/tests-v2-current-wallet.log",
+        "evidence/browser-wallet-v2/report.json",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Fresh separately coded allowance/payout decoder and canonical ancestry link to exact private reservations/items and immutable reports. Same local node; isolated-token-block accounting only; verifier executes in API resync process, not separately isolated process/credential boundary."
+    },
+    {
+      "id": "TR-T-ISOLATION",
+      "release_status": "partial",
+      "evidence": [
+        "tests/api.test.ts",
+        "evidence/tests-final.log",
+        "evidence/http-security-green.log",
+        "evidence/db-roles-v2-green.log",
+        "evidence/browser-wallet-v2-rls-green.log",
+        "evidence/live-preserved-accounts-v2-final.log",
+        "evidence/tests-v2-current-integration.log",
+        "evidence/db-constraints-v2-green.log"
+      ],
+      "observation_or_remaining_gate": "Production no longer connects as postgres. SCRAM app/indexer/verifier non-owner/non-BYPASSRLS grants; tenant FORCE RLS, per-request session hash + transaction-local workspace context, role mutation/DDL/wrong-password negatives. Worker can read assigned machine domain; API still owns indexer pool in-process; files/SSE/revocation gates remain."
+    },
+    {
+      "id": "TR-T-CSRF",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/tests-final.log"
+      ],
+      "observation_or_remaining_gate": "Session-derived identity + HttpOnly/SameSite + synchronizer token/origin checks. HTTP loopback only; no Secure transport, idle expiry/reset/CSP release proof."
+    },
+    {
+      "id": "TR-T-DURABLE",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/AL-02-green.log",
+        "evidence/operations-v2-green.log",
+        "evidence/legacy-v2-green.log",
+        "evidence/tests-v2-current-integration.log",
+        "evidence/db-constraints-v2-green.log",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Canonical method/target/query/If-Match/body idempotency digest; changed-target reuse409; immutable manifests/signatures/attempts/reports; no auto repeat after uncertain attempt. Full durable jobs/outbox/fencing/retry lifecycle absent."
+    },
+    {
+      "id": "TR-T-FAULT",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/indexer-process-restart.json",
+        "evidence/critical-proof-final.log",
+        "evidence/legacy-proof-v2-latest.json",
+        "evidence/legacy-proof-v2-current.log",
+        "evidence/legacy-proof-v2-1793011031631-b650841c/command.log"
+      ],
+      "observation_or_remaining_gate": "Current isolated code re-executed actual HTTP raw-broadcast response loss and a separate indexer process exit77/restart before checkpoint; matching Safe history recovers unknown hash. Connected app attempt/reconciliation also tested. Full60-second outage/replacement population still pending."
+    },
+    {
+      "id": "TR-T-SSE",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Durable sequence replay and client dedupe; gap/410 forces snapshot; private event redaction and 7-day retention; periodic resnapshot never infers chain settlement from SSE"
+    },
+    {
+      "id": "TR-T-UX",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/browser/mobile.png",
+        "evidence/browser/report.json"
+      ],
+      "observation_or_remaining_gate": "390px overview overflow checked, all desktop screen captures. No WCAG/manual screen-reader task acceptance."
+    },
+    {
+      "id": "TR-T-BROWSER",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/browser/report.json",
+        "evidence/tests-v2-current-wallet.log",
+        "evidence/browser-wallet-v2/report.json"
+      ],
+      "observation_or_remaining_gate": "System Chrome actual 13-screen navigation; pinned downloaded browser install timed out; Firefox/WebKit/extension/manual wallet absent."
+    },
+    {
+      "id": "TR-T-LOAD",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Proposed p95 API read <=300ms, write <=500ms excluding chain/wallet/scan; errors<1%; p95 event visible <=2s after DB commit; own p95 INP<=200ms and LCP<=2.5s cold over declared LAN profile; zero isolation/accounting defects"
+    },
+    {
+      "id": "TR-T-CAPACITY",
+      "release_status": "not_run",
+      "evidence": [],
+      "observation_or_remaining_gate": "Each batch simulated against 30M gas block budget; estimated execution<=15M or reduce supported maximum before freeze; p95 reconciliation<=5s after eligible checkpoint; replay10000 blocks<=120s; peak full-stack RSS<=8GiB on 16GiB host; total evidence/dependency disk<=12GiB; targets measured, not current claims"
+    },
+    {
+      "id": "TR-T-RESTORE",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/private-restore-v2.json",
+        "evidence/private-restore-v2.log"
+      ],
+      "observation_or_remaining_gate": "Actual AES-GCM pg_dump restoration into isolated database,14 private table row digests match, sessions revoked, FORCE RLS retained, corruption rejected. Original chain state unavailable; coherent DB+files+chain/PITR60-second schedule/ACL/key-escrow RPO not passed."
+    },
+    {
+      "id": "TR-T-MIGRATION",
+      "release_status": "partial",
+      "evidence": [
+        "db/002.sql",
+        "db/003-roles.sql",
+        "evidence/live-preserved-accounts-v2-final.log",
+        "evidence/private-restore-v2.json",
+        "evidence/tests-v2-current-integration.log",
+        "evidence/db-constraints-v2-green.log"
+      ],
+      "observation_or_remaining_gate": "Expand-only schema/security migration after private backup, original4 users/payables retained and real live sign-ins verified; no chain/deployment replacement. Mid-migration crash/resumable backfill/full rollback schedule not exercised."
+    },
+    {
+      "id": "TR-T-REPRO",
+      "release_status": "partial",
+      "evidence": [
+        "evidence/npm-ci-v2.log",
+        "package-lock.json",
+        "vendor/safe-1.4.1/SOURCE.json"
+      ],
+      "observation_or_remaining_gate": "Actual npm ci --ignore-scripts on Windows succeeds with0audit findings; exact source vendoring and local episode scripts. Warm npm cache/system Chrome/private role provisioning remain; independent clean Linux and pinned-browser reproduction not passed."
+    },
+    {
+      "id": "TR-T-SUPPLY",
+      "release_status": "blocked",
+      "evidence": [
+        "evidence/npm-audit.json",
+        "package-lock.json",
+        "docs/CUSTODY.md",
+        "evidence/npm-audit-v2-after-ci.json",
+        "evidence/npm-ci-v2.log",
+        "vendor/safe-1.4.1/SOURCE.json",
+        "evidence/npm-audit-v2-current.json"
+      ],
+      "observation_or_remaining_gate": "Removed Safe old JS dependency tree from installed build.45 official files vendored byte-for-byte against immutable upstreamcommit bf943f80fec5ac647159d26161446ac5d716a294 plus LGPL and SHA256 manifest. npm audit0 after clean install. Independent complete custody/license/advisory/bytecode review still required; no safety certification."
+    },
+    {
+      "id": "TR-T-EXPORT",
+      "release_status": "partial",
+      "evidence": [
+        "apps/api/app.ts"
+      ],
+      "observation_or_remaining_gate": "Private business JSON export exists, not complete replayable/redacted/retention packet."
+    },
+    {
+      "id": "TR-T-GATE",
+      "release_status": "blocked",
+      "evidence": [
+        "docs/acceptance.json",
+        "docs/INDEPENDENT-FINDINGS-v2.md",
+        "docs/REVIEW-v2.md",
+        "evidence/runtime-v2.json"
+      ],
+      "observation_or_remaining_gate": "All32 original acceptance IDs remain, no full-release pass asserted. Parent independent rerun/signoff and substantial application/ops scope still incomplete; no public/real-value use."
+    }
+  ],
+  "original_chain_status": "8547 was already unavailable at v2 arrival; original private records/deployment preserved, not silently reset; isolated execution uses18547",
+  "status_counts": {
+    "partial": 24,
+    "not_run": 6,
+    "blocked": 2
+  },
+  "current_execution_summary": {
+    "fast_suite": "npm test = 5 unit/render/source tests + 1 HTTP privacy test, not full release",
+    "isolated_integration_tests_passed": 10,
+    "foundry_tests_passed": 11,
+    "amount_fuzz_runs": 10000,
+    "stateful_invariant_runs": 1000,
+    "stateful_invariant_depth": 128,
+    "stateful_invariant_calls": 128000,
+    "stateful_invariant_reverts": 0,
+    "browser": "13 screens; cryptographic isolated fixture EIP1193 \u2192 actual allowance/payout \u21923 business paid atdepth12 \u219215-block reorg retracts3",
+    "npm_audit_current": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "complete_release_passes": 0,
+    "fresh_adversarial_subsystem_proof": {
+      "scope": "isolated adversarial subsystem proof, not application settlement",
+      "directory": "evidence/legacy-proof-v2-1793011031631-b650841c",
+      "exitCode": 0,
+      "originalReportHashesChecked": 5,
+      "originalEvidenceUntouched": true,
+      "originalBusinessDatabaseNotTargeted": true
+    }
+  }
+}

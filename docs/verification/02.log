@@ -1,0 +1,20 @@
+
+> alder-treasury@0.1.0 test:unit
+> tsx --test tests/units.test.ts tests/supply.test.ts tests/ui.test.tsx tests/settlement-ui.test.tsx tests/round6-gas-env.test.ts
+
+✔ the SAFE_TX_GAS_CAP initializer has a browser-safe default when process is absent (1.4786ms)
+✔ SAFE_TX_GAS_CAP still follows the configured Node process environment (836.541ms)
+✔ settlement rows distinguish canonical payment projection from business approval and show retraction (7.9716ms)
+✔ installed build graph excludes Safe legacy JS and vendored custody sources match every SHA256 (16.1941ms)
+✔ TR screen inventory preserves all original task headings and focuses the current heading target without preview role switch (25.4474ms)
+✔ frozen inspector renders only frozen ordered raw manifest, not current default selection (3.2497ms)
+✔ payable tables expose named keyboard-scroll regions at the 360px mobile breakpoint (4.2672ms)
+✔ TR-T-UNITS exact > float precision, positive decimal strings only (0.726ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1012.902

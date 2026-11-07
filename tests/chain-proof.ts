@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';import {spawnSync} from 'node:child_process';import {createServer} from 'node:http';import fs from 'node:fs';import {encodeFunctionData,parseEventLogs,zeroAddress,keccak256,toHex,hashTypedData,type Address,type Hex} from 'viem';
+import {client,wallet,testAccounts,artifact,safeArtifact,executorArtifact,tokenArtifact,receipt,send,runSafe,success,json,message,signed,execArgs,safeHash,typed} from './chain-kit.ts';
+import {reconcile} from '../services/indexer.ts';import {verify} from '../services/verifier.ts';import {Pool} from 'pg';
+const evidenceRoot=process.env.ALDER_PROOF_EVIDENCE_DIR;if(process.env.ALDER_LEGACY_PROOF!=='1'||process.env.ALDER_RPC_URL!=='http://127.0.0.1:18547'||process.env.ALDER_DATABASE_URL!=='postgresql://postgres@127.0.0.1:5543/alder_v2_test'||!evidenceRoot||!/^evidence\/legacy-proof-[a-z0-9-]+$/.test(evidenceRoot)||fs.existsSync(evidenceRoot))throw Error('EXPLICIT_FRESH_ISOLATED_PROOF_REQUIRED');fs.mkdirSync(evidenceRoot);const pool=new Pool({connectionString:process.env.ALDER_DATABASE_URL});
+await client.request({method:'anvil_setBalance' as any,params:[wallet.account.address,toHex(10n**21n)] as any});
+async function deploy(a:any,args:any[]=[]){const r=await receipt(await wallet.deployContract({abi:a.abi,bytecode:a.bytecode.object,args,gas:12000000n}));assert.equal(r.status,'success');return r.contractAddress!;}
+const singleton=await deploy(safeArtifact());const factory=await deploy(artifact('SafeProxyFactory'));
+const setup=encodeFunctionData({abi:safeArtifact().abi,functionName:'setup',args:[testAccounts.slice(0,3).map(a=>a.address),2,zeroAddress,'0x',zeroAddress,zeroAddress,0,zeroAddress]});
+const creation=await send(factory,encodeFunctionData({abi:artifact('SafeProxyFactory').abi,functionName:'createProxyWithNonce',args:[singleton,setup,1n]}));
+const safe=(parseEventLogs({abi:artifact('SafeProxyFactory').abi,logs:creation.logs})[0] as any).args.proxy as Address;
+const token=await deploy(tokenArtifact());const executor=await deploy(executorArtifact(),[safe,token,31337n]);
+await send(token,encodeFunctionData({abi:tokenArtifact().abi,functionName:'mint',args:[safe,42000000000n]}));
+assert(success((await runSafe(safe,token,encodeFunctionData({abi:tokenArtifact().abi,functionName:'approve',args:[executor,14250000000n]}))).receipt));
+const items=['4800000000','6250000000','3200000000'].map((amount,i)=>({paymentId:keccak256(toHex('local-payable-'+i)),recipient:('0x'+(100+i).toString(16).padStart(40,'0')) as Address,amount:BigInt(amount)}));
+const batchId=keccak256(toHex('local-batch'));const block=await client.getBlock();const authority=await client.readContract({address:executor,abi:executorArtifact().abi,functionName:'authorityHash'});
+const calldata=encodeFunctionData({abi:executorArtifact().abi,functionName:'executeBatch',args:[batchId,block.timestamp,block.timestamp+86400n,authority,items]});
+await send(token,encodeFunctionData({abi:tokenArtifact().abi,functionName:'fail',args:[items[2].recipient]}));
+const failure=await runSafe(safe,executor,calldata);assert.equal(failure.receipt.status,'success');assert(!success(failure.receipt));
+for(const p of items){assert.equal(await client.readContract({address:token,abi:tokenArtifact().abi,functionName:'balanceOf',args:[p.recipient]}),0n);assert.equal(await client.readContract({address:executor,abi:executorArtifact().abi,functionName:'usedPaymentId',args:[p.paymentId]}),false);}
+assert.equal(failure.receipt.logs.filter(l=>l.address.toLowerCase()===executor.toLowerCase()).length,0);
+console.log('PASS atomic third transfer failure: outer success / inner failure / zero effects');
+await send(token,encodeFunctionData({abi:tokenArtifact().abi,functionName:'fail',args:[zeroAddress]}));
+const nonce=await client.readContract({address:safe,abi:safeArtifact().abi,functionName:'nonce'}) as bigint;const m=message(executor,calldata,nonce);const signatures=await signed(safe,m);
+// Old signatures must fail for every signed field, plus executor calldata mutations.
+const mutations=[{...m,value:1n},{...m,to:token},{...m,operation:1},{...m,safeTxGas:999999n},{...m,baseGas:1n},{...m,gasPrice:1n},{...m,gasToken:token},{...m,refundReceiver:token},{...m,data:(calldata.slice(0,-2)+'01') as Hex}];
+for(const altered of mutations){await assert.rejects(()=>client.call({account:wallet.account.address,to:safe,data:encodeFunctionData({abi:safeArtifact().abi,functionName:'execTransaction',args:execArgs(altered,signatures)}),gas:3000000n}));}
+assert.notEqual(hashTypedData({...typed(safe,m),domain:{chainId:31338,verifyingContract:safe}}),safeHash(safe,m));
+console.log('PASS exact Safe typed hash and signed field tamper rejection');
+const snapshot=await client.request({method:'evm_snapshot' as any});const snapshotBlock=await client.getBlockNumber();
+const outerData=encodeFunctionData({abi:safeArtifact().abi,functionName:'execTransaction',args:execArgs(m,signatures)});const unsigned=await wallet.prepareTransactionRequest({to:safe,data:outerData,gas:3000000n});const raw=await wallet.signTransaction(unsigned);let forwarded=false;const dropProxy=createServer(async(req,res)=>{let body='';for await(const chunk of req)body+=chunk;const upstream=await fetch(process.env.ALDER_RPC_URL!,{method:'POST',headers:{'content-type':'application/json'},body});const result:any=await upstream.json();assert.equal(result.result,keccak256(raw));forwarded=true;res.destroy();});await new Promise<void>(resolve=>dropProxy.listen(0,'127.0.0.1',resolve));const port=(dropProxy.address() as any).port;await assert.rejects(()=>fetch(`http://127.0.0.1:${port}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_sendRawTransaction',params:[raw]})}));await new Promise<void>(resolve=>dropProxy.close(()=>resolve()));assert(forwarded,'proxy must actually forward before losing reply');const payout={m,hash:safeHash(safe,m),signatures,receipt:await receipt(keccak256(raw))};assert(success(payout.receipt));console.log('PASS real HTTP proxy forwarded raw wallet transaction then dropped response');await client.request({method:'anvil_mine' as any,params:['0xb'] as any});
+const manifest={chainId:31337,genesis:(await client.getBlock({blockNumber:0n})).hash,singleton,factory,safe,token,executor,batchId,items:items.map(p=>({...p,amount:p.amount.toString()})),calldata,safeTxHash:payout.hash,message:payout.m,transactionHash:payout.receipt.transactionHash,deploymentBlock:creation.blockNumber,codeHashes:{safe:keccak256((await client.getCode({address:safe}))!),token:keccak256((await client.getCode({address:token}))!),executor:keccak256((await client.getCode({address:executor}))!)}};
+fs.writeFileSync(`${evidenceRoot}/deployment.json`,json(manifest));fs.writeFileSync(`${evidenceRoot}/failure-receipt.json`,json(failure.receipt));fs.writeFileSync(`${evidenceRoot}/payout-receipt.json`,json(payout.receipt));
+const report=await verify(manifest as any);assert.equal(report.state,'verified','independent verifier must establish actual canonical effects');
+fs.writeFileSync(`${evidenceRoot}/verifier-report.json`,json(report));console.log('PASS independent depth12 exact effects verifier');
+await assert.rejects(()=>client.call({account:wallet.account.address,to:safe,data:encodeFunctionData({abi:safeArtifact().abi,functionName:'execTransaction',args:execArgs(payout.m,payout.signatures)}),gas:3000000n}));
+console.log('PASS Safe nonce replay rejected');
+await pool.query(fs.readFileSync('db/001.sql','utf8'));
+await pool.query('TRUNCATE proof_operations,proof_history,chain_headers,chain_logs,chain_checkpoint');
+const lost={...manifest,transactionHash:null};await pool.query('INSERT INTO proof_operations(id,manifest) VALUES($1,$2)',[batchId,JSON.parse(json(lost))]);
+const checkpointBefore=(await pool.query('SELECT * FROM chain_checkpoint')).rows;
+const crashProcess=spawnSync(process.execPath,['--import','tsx','services/indexer-cli.ts','--crash-after-fetch'],{encoding:'utf8'});assert.equal(crashProcess.status,77,crashProcess.stderr);assert.deepEqual((await pool.query('SELECT * FROM chain_checkpoint')).rows,checkpointBefore,'fetch crash cannot commit checkpoint');const restarted=spawnSync(process.execPath,['--import','tsx','services/indexer-cli.ts'],{encoding:'utf8'});assert.equal(restarted.status,0,restarted.stderr);fs.writeFileSync(`${evidenceRoot}/indexer-process-restart.json`,json({crashStatus:crashProcess.status,crash:crashProcess.stderr,restartStatus:restarted.status,restart:restarted.stdout}));
+await reconcile(pool,{duplicateReverse:true});assert.equal((await pool.query('SELECT state FROM proof_operations')).rows[0].state,'verified','lost response must recover existing canonical payout');
+console.log('PASS crash before checkpoint + restart + lost response history recovery');
+await client.request({method:'anvil_mine' as any,params:['0x3'] as any});await reconcile(pool); // payout +14 descendants = 15 blocks after B
+assert.equal((await client.getBlockNumber())-snapshotBlock,15n);
+assert(await client.request({method:'evm_revert' as any,params:[snapshot] as any}));await client.request({method:'anvil_mine' as any,params:['0xf'] as any});
+await reconcile(pool);const retracted=(await pool.query('SELECT * FROM proof_operations')).rows[0];assert.equal(retracted.state,'retracted');assert.equal(retracted.reserved,true);assert.equal((await pool.query('SELECT paused FROM chain_checkpoint')).rows[0].paused,true);assert.equal((await verify(manifest as any)).state,'unverified');
+console.log('PASS real 15-block reorg retracts paid, reservations held, deep-reorg pause');
+fs.writeFileSync(`${evidenceRoot}/reorg-report.json`,json({snapshotBlock,afterHeight:await client.getBlockNumber(),operation:retracted,checkpoint:(await pool.query('SELECT * FROM chain_checkpoint')).rows[0]}));
+await reconcile(pool,{rebuild:true});assert.equal((await pool.query('SELECT paused FROM chain_checkpoint')).rows[0].paused,false);assert.notEqual((await pool.query('SELECT state FROM proof_operations')).rows[0].state,'verified');
+// Explicit operator-selected rebroadcast only after reconciliation, not an automatic retry.
+const replay=await runSafe(safe,executor,calldata);assert(success(replay.receipt));await client.request({method:'anvil_mine' as any,params:['0xb'] as any});manifest.transactionHash=replay.receipt.transactionHash;await pool.query('UPDATE proof_operations SET manifest=$1',[JSON.parse(json({...manifest,transactionHash:null}))]);await reconcile(pool);assert.equal((await pool.query('SELECT state FROM proof_operations')).rows[0].state,'verified');
+const recovered=(await pool.query('SELECT report FROM proof_operations')).rows[0].report;await reconcile(pool,{rebuild:true});assert.deepEqual((await pool.query('SELECT report FROM proof_operations')).rows[0].report,recovered,'full replay equals recovery');
+fs.writeFileSync(`${evidenceRoot}/deployment.json`,json(manifest));fs.writeFileSync(`${evidenceRoot}/verifier-report.json`,json(await verify(manifest as any)));console.log('PASS explicit original authorization replay after reorg + full rebuild equality');
+await pool.end();

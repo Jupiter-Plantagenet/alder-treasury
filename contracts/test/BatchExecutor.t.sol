@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+import {Safe} from "@safe-global/safe-contracts/contracts/Safe.sol";
+import {SafeProxyFactory} from "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
+import {Enum} from "@safe-global/safe-contracts/contracts/common/Enum.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+interface Vm { struct Log {bytes32[] topics;bytes data;address emitter;} function recordLogs() external;function getRecordedLogs() external returns(Log[] memory); function addr(uint256) external returns(address); function sign(uint256,bytes32) external returns(uint8,bytes32,bytes32); function prank(address) external; function warp(uint256) external; }
+contract FailureToken is ERC20 {
+ address public failTo; constructor() ERC20("Alder Reference", "ALDR"){} function decimals() public pure override returns(uint8){return 6;}
+ function mint(address to,uint n) external {_mint(to,n);} function fail(address to) external {failTo=to;}
+ function _update(address a,address b,uint n) internal override {require(b!=failTo,"fixture failure");super._update(a,b,n);}
+}
+interface IExecutor { struct Payment {bytes32 paymentId;address recipient;uint256 amount;} function executeBatch(bytes32,uint64,uint64,bytes32,Payment[] calldata) external; function usedPaymentId(bytes32) external view returns(bool); function executedBatch(bytes32) external view returns(bool); function authorityHash() external view returns(bytes32); function cancelBatch(bytes32) external; }
+import {BatchExecutor} from "../src/BatchExecutor.sol";
+contract BatchExecutorTest {
+ Vm vm=Vm(address(uint160(uint256(keccak256("hevm cheat code"))))); Safe safe; FailureToken token; IExecutor executor; uint k1=101;uint k2=202;
+ function setUp() public { Safe singleton=new Safe(); SafeProxyFactory factory=new SafeProxyFactory(); address[] memory owners=new address[](3);owners[0]=vm.addr(k1);owners[1]=vm.addr(k2);owners[2]=vm.addr(303);safe=Safe(payable(address(factory.createProxyWithNonce(address(singleton),abi.encodeCall(Safe.setup,(owners,2,address(0),hex"",address(0),address(0),0,payable(address(0)))),1))));token=new FailureToken();executor=IExecutor(address(new BatchExecutor(address(safe),address(token),block.chainid)));token.mint(address(safe),1000000); exec(address(token),abi.encodeCall(ERC20.approve,(address(executor),1000000))); }
+ function exec(address to,bytes memory data) internal returns(bool){bytes32 h=safe.getTransactionHash(to,0,data,Enum.Operation.Call,1000000,0,0,address(0),address(0),safe.nonce());(uint8 v1,bytes32 r1,bytes32 s1)=vm.sign(k1,h);(uint8 v2,bytes32 r2,bytes32 s2)=vm.sign(k2,h);bytes memory a=abi.encodePacked(r1,s1,v1);bytes memory b=abi.encodePacked(r2,s2,v2);return safe.execTransaction(to,0,data,Enum.Operation.Call,1000000,0,0,address(0),payable(address(0)),vm.addr(k1)<vm.addr(k2)?bytes.concat(a,b):bytes.concat(b,a));}
+ function items() internal pure returns(IExecutor.Payment[] memory p){p=new IExecutor.Payment[](3);for(uint i;i<3;i++)p[i]=IExecutor.Payment(bytes32(i+1),address(uint160(100+i)),100);}
+ function payload() internal view returns(bytes memory){return abi.encodeCall(IExecutor.executeBatch,(bytes32(uint256(11)),uint64(block.timestamp),uint64(block.timestamp+1 days),executor.authorityHash(),items()));}
+ function testThirdTransferRollback() public {token.fail(address(102));uint n=safe.nonce();require(!exec(address(executor),payload()),"must fail inner");require(safe.nonce()==n+1,"Safe nonce consumed");require(token.balanceOf(address(100))==0&&token.balanceOf(address(101))==0,"earlier effects rollback");require(token.balanceOf(address(safe))==1000000,"Safe balance rollback");require(!executor.usedPaymentId(bytes32(uint256(1))),"marker rollback");require(!executor.executedBatch(bytes32(uint256(11))),"batch rollback");}
+ function testNormativePaymentEventBindsToken() public {vm.recordLogs();require(exec(address(executor),payload()),"success");Vm.Log[] memory logs=vm.getRecordedLogs();uint found;for(uint i;i<logs.length;i++){if(logs[i].emitter==address(executor)&&logs[i].topics[0]==keccak256("PaymentExecuted(bytes32,bytes32,address,address,uint256)")){(address asset,uint amount)=abi.decode(logs[i].data,(address,uint));require(asset==address(token)&&amount==100,"exact token and units");found++;}}require(found==3,"normative token event missing");}
+ function testOnlySafe() public {(bool ok,)=address(executor).call(payload());require(!ok,"EOA denied");}
+ function testAuthorityMismatch() public {IExecutor.Payment[] memory p=items();require(!exec(address(executor),abi.encodeCall(IExecutor.executeBatch,(bytes32(uint256(11)),uint64(block.timestamp),uint64(block.timestamp+1 days),bytes32(0),p))),"authority denied");}
+ function testExpired() public {bytes memory p=payload();vm.warp(block.timestamp+2 days);require(!exec(address(executor),p),"expired denied");}
+ function testCancelled() public {require(exec(address(executor),abi.encodeCall(IExecutor.cancelBatch,(bytes32(uint256(11))))),"cancel");require(!exec(address(executor),payload()),"cancelled denied");}
+ function testDuplicateId() public {IExecutor.Payment[] memory p=items();p[2].paymentId=p[0].paymentId;require(!exec(address(executor),abi.encodeCall(IExecutor.executeBatch,(bytes32(uint256(11)),uint64(block.timestamp),uint64(block.timestamp+1 days),executor.authorityHash(),p))),"duplicate denied");}
+ function testFuzzAmount(uint64 amount) public {amount=amount%300000+1;IExecutor.Payment[] memory p=items();for(uint i;i<3;i++)p[i].amount=amount;require(exec(address(executor),abi.encodeCall(IExecutor.executeBatch,(bytes32(uint256(12)),uint64(block.timestamp),uint64(block.timestamp+1 days),executor.authorityHash(),p))),"valid amount");require(token.balanceOf(address(100))==amount,"exact fuzz");}
+ function testExactTransferAndReplay() public {bytes memory data=payload();require(exec(address(executor),data),"inner success");require(token.balanceOf(address(100))==100,"exact recipient effect");require(executor.usedPaymentId(bytes32(uint256(1))),"used ID");require(!exec(address(executor),data),"replay rejected");}
+}
